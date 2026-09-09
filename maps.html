@@ -31,7 +31,7 @@
 const box=document.getElementById("install"), installBtn=document.getElementById("installBtn"), closeBtn=document.getElementById("closeBtn"), offline=document.getElementById("offlineBar");
 let deferredPrompt=null;
 function net(){offline.style.display=navigator.onLine?"none":"block"} window.addEventListener("online",net);window.addEventListener("offline",net);net();
-if("serviceWorker" in navigator) window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js",{scope:"./map"}).catch(console.warn));
+if("serviceWorker" in navigator) window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js",{scope:"./maps"}).catch(console.warn));
 window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredPrompt=e;if(!window.matchMedia("(display-mode: standalone)").matches && localStorage.getItem("mapadoua-install-dismissed")!=="1")box.style.display="block"});
 installBtn.onclick=async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;box.style.display="none"};
 closeBtn.onclick=()=>{box.style.display="none";localStorage.setItem("mapadoua-install-dismissed","1")};
