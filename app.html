@@ -2,15 +2,14 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport"
-      content="width=device-width,initial-scale=1,viewport-fit=cover">
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#111827">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>МапаПодійUA — Beta test</title>
 
-<title>МапаПодійUA</title>
+<link rel="manifest" href="./manifest.json">
 
 <style>
 *{
@@ -18,19 +17,23 @@
   -webkit-tap-highlight-color:transparent;
 }
 
-html,
-body{
+html,body{
   margin:0;
   padding:0;
   width:100%;
-  min-height:100%;
-  background:#0b0f14;
-  color:#fff;
-  font-family:Arial,Helvetica,sans-serif;
+  height:100%;
+  background:#0b1120;
+  color:#f8fafc;
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
 }
 
 body{
-  padding-bottom:env(safe-area-inset-bottom);
+  overflow:hidden;
 }
 
 button,
@@ -43,641 +46,992 @@ button{
   cursor:pointer;
 }
 
-.app{
+#app{
   width:100%;
-  max-width:760px;
-  margin:0 auto;
-  min-height:100vh;
-  background:#111827;
+  height:100%;
+  position:relative;
+  overflow:hidden;
 }
 
-header{
-  position:sticky;
-  top:0;
-  z-index:50;
-  background:#111827;
-  border-bottom:1px solid #263244;
-  padding:
-    calc(12px + env(safe-area-inset-top))
-    14px
-    12px;
+/* =========================
+   SCREENS
+========================= */
+
+.screen{
+  position:absolute;
+  inset:0;
+  bottom:76px;
+  display:none;
+  overflow-y:auto;
+  overflow-x:hidden;
+  padding:18px 16px 30px;
+  -webkit-overflow-scrolling:touch;
 }
 
-.header-row{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:10px;
-}
-
-.logo{
-  font-size:20px;
-  font-weight:800;
-}
-
-.logo small{
+.screen.active{
   display:block;
-  color:#8fa0b8;
-  font-size:11px;
-  margin-top:2px;
-  font-weight:500;
 }
 
-.gps-header{
-  display:flex;
-  align-items:center;
-  gap:7px;
-  color:#aebbd0;
-  font-size:12px;
-  text-align:right;
+.screen.map-screen{
+  padding:0;
+  overflow:hidden;
 }
 
-.dot{
-  width:9px;
-  height:9px;
-  border-radius:50%;
-  background:#777;
-  box-shadow:0 0 8px rgba(255,255,255,.15);
-}
+/* =========================
+   HEADER
+========================= */
 
-main{
-  padding:14px;
-}
-
-.card{
-  background:#182231;
-  border:1px solid #29374b;
-  border-radius:16px;
-  padding:15px;
-  margin-bottom:12px;
-}
-
-.card-title{
-  font-size:16px;
+.page-title{
+  margin:4px 0 6px;
+  font-size:27px;
   font-weight:800;
-  margin-bottom:12px;
+  letter-spacing:-0.5px;
 }
 
-.status-card{
-  border-radius:18px;
-  padding:18px;
-  background:
-    linear-gradient(145deg,#1b2838,#141d29);
-  border:1px solid #314158;
-}
-
-.status-main{
-  display:flex;
-  align-items:center;
-  gap:14px;
-}
-
-.status-icon{
-  width:58px;
-  height:58px;
-  border-radius:16px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  background:#263449;
-  font-size:30px;
-  flex:none;
-}
-
-.status-text{
-  min-width:0;
-  flex:1;
-}
-
-.status-title{
-  font-size:18px;
-  font-weight:800;
-  margin-bottom:5px;
-}
-
-.status-sub{
-  color:#9baac0;
-  font-size:13px;
-  line-height:1.4;
-}
-
-.gps-info{
-  margin-top:14px;
-  padding-top:12px;
-  border-top:1px solid #29374b;
-  color:#9baac0;
-  font-size:12px;
-  line-height:1.5;
-}
-
-.btn{
-  width:100%;
-  border:0;
-  border-radius:12px;
-  padding:13px 15px;
-  font-weight:800;
-  color:#fff;
-  background:#2563eb;
-  margin-top:9px;
-}
-
-.btn:active{
-  transform:scale(.99);
-}
-
-.btn.secondary{
-  background:#29374b;
-}
-
-.btn.danger{
-  background:#b91c1c;
-}
-
-.btn.green{
-  background:#16834b;
-}
-
-.switch-row{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:12px;
-  padding:12px 0;
-  border-bottom:1px solid #29374b;
-}
-
-.switch-row:last-child{
-  border-bottom:0;
-}
-
-.switch-label{
-  flex:1;
-}
-
-.switch-title{
-  font-weight:700;
+.page-subtitle{
+  margin:0 0 18px;
+  color:#94a3b8;
   font-size:14px;
 }
 
-.switch-desc{
-  color:#8fa0b8;
-  font-size:11px;
-  margin-top:3px;
-  line-height:1.35;
+/* =========================
+   HOME
+========================= */
+
+.home-card{
+  background:linear-gradient(
+    145deg,
+    #111827,
+    #172033
+  );
+  border:1px solid #263244;
+  border-radius:22px;
+  padding:20px;
+  box-shadow:0 12px 30px rgba(0,0,0,.25);
 }
 
-input[type="checkbox"]{
-  width:22px;
-  height:22px;
-  accent-color:#2563eb;
-  flex:none;
-}
-
-.category{
-  border:1px solid #2a394e;
-  background:#141e2b;
-  border-radius:14px;
-  padding:13px;
-  margin-top:10px;
-}
-
-.category-head{
+.location-status{
   display:flex;
   align-items:center;
-  gap:10px;
+  gap:12px;
+  margin-bottom:18px;
 }
 
-.category-icon{
-  width:38px;
-  height:38px;
-  border-radius:11px;
+.location-icon{
+  width:48px;
+  height:48px;
   display:flex;
   align-items:center;
   justify-content:center;
-  background:#263449;
+  border-radius:16px;
+  background:#1e293b;
+  font-size:25px;
+}
+
+.location-title{
+  font-size:18px;
+  font-weight:800;
+}
+
+.location-subtitle{
+  margin-top:3px;
+  font-size:13px;
+  color:#94a3b8;
+}
+
+.status-list{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.status-item{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  min-height:58px;
+  padding:12px 14px;
+  border-radius:16px;
+  background:#0f172a;
+  border:1px solid #263244;
+}
+
+.status-emoji{
+  width:38px;
+  height:38px;
+  border-radius:12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#1e293b;
   font-size:21px;
   flex:none;
 }
 
-.category-name{
-  flex:1;
+.status-name{
+  font-weight:700;
+  font-size:15px;
+}
+
+.status-distance{
+  margin-top:3px;
+  color:#94a3b8;
+  font-size:12px;
+}
+
+.safe{
+  padding:18px;
+  border-radius:18px;
+  background:#052e1a;
+  border:1px solid #14532d;
+  color:#bbf7d0;
+  font-weight:700;
+  line-height:1.45;
+}
+
+.gps-box{
+  margin-top:14px;
+  padding:15px;
+  border-radius:17px;
+  background:#111827;
+  border:1px solid #263244;
+  color:#cbd5e1;
+  font-size:13px;
+  line-height:1.45;
+}
+
+.gps-ok{
+  color:#86efac;
+}
+
+.gps-error{
+  color:#fca5a5;
+}
+
+.gps-wait{
+  color:#fde68a;
+}
+
+/* =========================
+   MAP
+========================= */
+
+.map-screen{
+  background:#0b1120;
+}
+
+.map-frame{
+  width:100%;
+  height:100%;
+  border:0;
+  display:block;
+  background:#111827;
+}
+
+/* =========================
+   NOTIFICATIONS
+========================= */
+
+.settings-card{
+  background:#111827;
+  border:1px solid #263244;
+  border-radius:20px;
+  padding:16px;
+  margin-bottom:14px;
+}
+
+.settings-title{
+  font-size:17px;
   font-weight:800;
-  font-size:14px;
+  margin-bottom:5px;
 }
 
-.category-settings{
-  margin-top:12px;
-  padding-top:11px;
-  border-top:1px solid #29374b;
+.settings-description{
+  font-size:13px;
+  color:#94a3b8;
+  line-height:1.4;
+  margin-bottom:14px;
 }
 
-.setting-line{
+.main-toggle{
   display:flex;
   align-items:center;
   justify-content:space-between;
-  gap:10px;
-  padding:8px 0;
+  gap:15px;
+  padding:13px 0;
+  border-bottom:1px solid #263244;
 }
 
-.setting-line label{
-  font-size:13px;
-  color:#c8d2df;
+.main-toggle:last-child{
+  border-bottom:0;
 }
 
-.range-wrap{
-  display:flex;
-  align-items:center;
-  gap:9px;
-  width:52%;
-}
-
-input[type="range"]{
-  width:100%;
-  accent-color:#3b82f6;
-}
-
-.range-value{
-  width:40px;
-  text-align:right;
-  color:#8fa0b8;
-  font-size:12px;
-}
-
-.active-list{
-  display:flex;
-  flex-direction:column;
-  gap:8px;
-}
-
-.active-item{
-  border-left:4px solid #777;
-  background:#141e2b;
-  border-radius:10px;
-  padding:10px 12px;
-}
-
-.active-item-title{
-  font-weight:800;
-  font-size:13px;
-}
-
-.active-item-sub{
-  color:#8fa0b8;
-  font-size:11px;
-  margin-top:3px;
-}
-
-.empty{
-  color:#8796aa;
-  text-align:center;
-  padding:12px 4px;
-  font-size:13px;
-}
-
-.author{
-  text-align:center;
-  color:#9aa8bb;
-  line-height:1.6;
-  font-size:13px;
-}
-
-.author strong{
-  color:#fff;
-}
-
-.author a{
-  color:#60a5fa;
-  text-decoration:none;
-}
-
-.bottom-note{
-  margin-top:12px;
-  color:#76869c;
-  font-size:11px;
-}
-
-.toast{
-  position:fixed;
-  left:50%;
-  bottom:20px;
-  transform:translate(-50%,120px);
-  width:calc(100% - 28px);
-  max-width:700px;
-  background:#111827;
-  border:1px solid #3a4a61;
-  box-shadow:0 10px 40px rgba(0,0,0,.5);
-  border-radius:14px;
-  padding:13px 15px;
-  z-index:9999;
-  opacity:0;
-  transition:.25s ease;
-  pointer-events:none;
-}
-
-.toast.show{
-  transform:translate(-50%,0);
-  opacity:1;
-}
-
-.toast-title{
-  font-weight:800;
+.toggle-label{
+  font-weight:700;
   font-size:14px;
 }
 
-.toast-text{
-  color:#aebbd0;
+.toggle-description{
+  color:#94a3b8;
   font-size:12px;
   margin-top:3px;
-  line-height:1.4;
 }
 
-.hidden{
-  display:none!important;
+.switch{
+  position:relative;
+  width:52px;
+  height:30px;
+  flex:none;
 }
 
-.api-status{
+.switch input{
+  opacity:0;
+  width:0;
+  height:0;
+}
+
+.slider{
+  position:absolute;
+  inset:0;
+  border-radius:30px;
+  background:#334155;
+  transition:.2s;
+}
+
+.slider:before{
+  content:"";
+  position:absolute;
+  width:22px;
+  height:22px;
+  left:4px;
+  top:4px;
+  border-radius:50%;
+  background:#fff;
+  transition:.2s;
+}
+
+.switch input:checked + .slider{
+  background:#2563eb;
+}
+
+.switch input:checked + .slider:before{
+  transform:translateX(22px);
+}
+
+.category-setting{
+  padding:15px 0;
+  border-top:1px solid #263244;
+}
+
+.category-header{
   display:flex;
   align-items:center;
-  gap:7px;
+  justify-content:space-between;
+  gap:12px;
+}
+
+.category-name{
+  font-size:15px;
+  font-weight:800;
+}
+
+.category-controls{
+  margin-top:12px;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+}
+
+.control-box{
+  background:#0f172a;
+  border:1px solid #263244;
+  border-radius:14px;
+  padding:10px;
+}
+
+.control-box label{
+  display:block;
   font-size:11px;
-  color:#8392a7;
-  margin-top:9px;
+  color:#94a3b8;
+  margin-bottom:5px;
 }
 
-.api-dot{
-  width:7px;
-  height:7px;
-  border-radius:50%;
-  background:#777;
-}
-
-hr{
+.control-box select{
+  width:100%;
   border:0;
-  border-top:1px solid #29374b;
-  margin:15px 0;
+  outline:0;
+  background:transparent;
+  color:#f8fafc;
+  font-size:13px;
+}
+
+.small-toggle{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-top:10px;
+  font-size:13px;
+  color:#cbd5e1;
+}
+
+.checkbox{
+  width:20px;
+  height:20px;
+  accent-color:#2563eb;
+}
+
+/* =========================
+   INFO
+========================= */
+
+.info-card{
+  background:#111827;
+  border:1px solid #263244;
+  border-radius:22px;
+  padding:20px;
+  margin-bottom:14px;
+}
+
+.info-logo{
+  width:70px;
+  height:70px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:22px;
+  background:#1e293b;
+  font-size:36px;
+  margin-bottom:14px;
+}
+
+.info-title{
+  font-size:23px;
+  font-weight:850;
+  margin-bottom:5px;
+}
+
+.info-beta{
+  color:#60a5fa;
+  font-weight:700;
+  font-size:13px;
+  margin-bottom:15px;
+}
+
+.info-text{
+  color:#cbd5e1;
+  font-size:14px;
+  line-height:1.55;
+}
+
+.link-button{
+  display:block;
+  width:100%;
+  margin-top:10px;
+  padding:13px 15px;
+  border-radius:14px;
+  background:#1e293b;
+  border:1px solid #334155;
+  color:#f8fafc;
+  text-decoration:none;
+  font-weight:700;
+  font-size:14px;
+}
+
+.link-button:active{
+  transform:scale(.98);
+}
+
+.community{
+  margin-top:18px;
+  padding:16px;
+  border-radius:17px;
+  background:#172033;
+  border:1px solid #334155;
+  color:#cbd5e1;
+  font-size:14px;
+  line-height:1.5;
+}
+
+/* =========================
+   BOTTOM NAV
+========================= */
+
+.bottom-nav{
+  position:fixed;
+  z-index:1000;
+  left:0;
+  right:0;
+  bottom:0;
+  height:76px;
+  padding:
+    7px
+    7px
+    calc(7px + env(safe-area-inset-bottom));
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:5px;
+  background:rgba(11,17,32,.96);
+  border-top:1px solid #263244;
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+}
+
+.nav-button{
+  border:0;
+  border-radius:15px;
+  background:transparent;
+  color:#64748b;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:3px;
+  font-size:10px;
+  font-weight:700;
+  min-width:0;
+}
+
+.nav-button .nav-icon{
+  font-size:23px;
+  line-height:24px;
+}
+
+.nav-button.active{
+  background:#172033;
+  color:#60a5fa;
+}
+
+.nav-button:active{
+  transform:scale(.96);
+}
+
+/* =========================
+   TOAST
+========================= */
+
+#toast{
+  position:fixed;
+  z-index:3000;
+  left:16px;
+  right:16px;
+  bottom:92px;
+  padding:14px 16px;
+  border-radius:16px;
+  background:#1e293b;
+  border:1px solid #334155;
+  color:#fff;
+  box-shadow:0 12px 30px rgba(0,0,0,.4);
+  transform:translateY(30px);
+  opacity:0;
+  pointer-events:none;
+  transition:.25s;
+  font-size:14px;
+  font-weight:700;
+}
+
+#toast.show{
+  transform:translateY(0);
+  opacity:1;
+}
+
+/* =========================
+   MODAL
+========================= */
+
+.modal{
+  position:fixed;
+  inset:0;
+  z-index:5000;
+  display:none;
+  align-items:flex-end;
+  background:rgba(0,0,0,.65);
+}
+
+.modal.show{
+  display:flex;
+}
+
+.modal-content{
+  width:100%;
+  background:#111827;
+  border-radius:24px 24px 0 0;
+  padding:22px;
+  padding-bottom:calc(22px + env(safe-area-inset-bottom));
+  border-top:1px solid #334155;
+}
+
+.modal-title{
+  font-size:20px;
+  font-weight:800;
+  margin-bottom:10px;
+}
+
+.modal-text{
+  color:#cbd5e1;
+  font-size:14px;
+  line-height:1.5;
+}
+
+.modal-actions{
+  display:flex;
+  gap:10px;
+  margin-top:18px;
+}
+
+.modal-btn{
+  flex:1;
+  border:0;
+  border-radius:14px;
+  padding:13px;
+  font-weight:800;
+}
+
+.modal-cancel{
+  background:#1e293b;
+  color:#f8fafc;
+}
+
+.modal-ok{
+  background:#2563eb;
+  color:#fff;
+}
+
+/* =========================
+   DESKTOP
+========================= */
+
+@media(min-width:700px){
+  .screen{
+    max-width:760px;
+    left:50%;
+    right:auto;
+    width:760px;
+    transform:translateX(-50%);
+  }
+
+  .map-screen{
+    max-width:none;
+    width:100%;
+    transform:none;
+    left:0;
+  }
+
+  .bottom-nav{
+    max-width:760px;
+    left:50%;
+    right:auto;
+    width:760px;
+    transform:translateX(-50%);
+    border-left:1px solid #263244;
+    border-right:1px solid #263244;
+  }
+
+  #toast{
+    max-width:500px;
+    left:50%;
+    right:auto;
+    width:calc(100% - 32px);
+    transform:translate(-50%,30px);
+  }
+
+  #toast.show{
+    transform:translate(-50%,0);
+  }
 }
 </style>
 </head>
 
 <body>
 
-<div class="app">
+<div id="app">
 
-<header>
-  <div class="header-row">
+  <!-- =========================
+       ГОЛОВНА
+  ========================== -->
 
-    <div class="logo">
-      🗺️ МапаПодійUA
-      <small>Beta test</small>
-    </div>
+  <section
+    id="screen-home"
+    class="screen active"
+    aria-label="Головна"
+  >
 
-    <div class="gps-header">
-      <span id="gpsHeader">GPS вимкнено</span>
-      <span id="gpsDot" class="dot"></span>
-    </div>
+    <h1 class="page-title">🏠 Головна</h1>
 
-  </div>
-</header>
+    <p class="page-subtitle">
+      Статус подій поруч із вашим місцезнаходженням
+    </p>
 
-<main>
+    <div class="home-card">
 
-  <!-- ГОЛОВНИЙ СТАТУС -->
+      <div class="location-status">
 
-  <section class="status-card">
-
-    <div class="status-main">
-
-      <div id="statusIcon" class="status-icon">
-        📍
-      </div>
-
-      <div class="status-text">
-
-        <div id="statusTitle" class="status-title">
-          GPS вимкнено
+        <div class="location-icon">
+          📍
         </div>
 
-        <div id="statusSub" class="status-sub">
-          Увімкніть GPS, щоб отримувати повідомлення про події поруч із вами.
-        </div>
+        <div>
+          <div class="location-title">
+            Статус біля вас
+          </div>
 
-      </div>
-
-    </div>
-
-    <div class="gps-info">
-
-      <div id="gpsStatus">
-        GPS вимкнено
-      </div>
-
-      <div id="gpsCoords">
-        Координати ще не отримані.
-      </div>
-
-      <div id="activeCount">
-        Активних зон: 0
-      </div>
-
-      <div class="api-status">
-        <span id="apiDot" class="api-dot"></span>
-        <span id="apiStatus">API: очікування</span>
-      </div>
-
-    </div>
-
-  </section>
-
-
-  <!-- GPS -->
-
-  <section class="card">
-
-    <div class="card-title">
-      📍 Геолокація
-    </div>
-
-    <div class="switch-row">
-
-      <div class="switch-label">
-
-        <div class="switch-title">
-          Доступ до GPS для отримання повідомлень
-        </div>
-
-        <div class="switch-desc">
-          Координати перевіряються безпосередньо на вашому пристрої.
+          <div
+            id="gpsText"
+            class="location-subtitle gps-wait"
+          >
+            Очікування GPS...
+          </div>
         </div>
 
       </div>
 
-      <input
-        id="gps"
-        type="checkbox"
+      <div
+        id="statusList"
+        class="status-list"
       >
+        <div class="safe">
+          ⏳ Отримуємо ваше місцезнаходження...
+        </div>
+      </div>
 
     </div>
 
-    <button
-      id="gpsStart"
-      class="btn"
-      type="button"
+    <div
+      id="gpsBox"
+      class="gps-box"
     >
-      📍 Увімкнути GPS
-    </button>
+      📡 GPS ще не активовано.
+    </div>
 
   </section>
 
 
-  <!-- NOTIFICATIONS -->
+  <!-- =========================
+       МАПА
+  ========================== -->
 
-  <section class="card">
+  <section
+    id="screen-map"
+    class="screen map-screen"
+    aria-label="Мапа"
+  >
 
-    <div class="card-title">
-      🔔 Сповіщення
-    </div>
+    <iframe
+      id="mapFrame"
+      class="map-frame"
+      src="./map.html"
+      title="МапаПодійUA"
+      allow="geolocation"
+      loading="eager"
+    ></iframe>
 
-    <div class="switch-row">
+  </section>
 
-      <div class="switch-label">
 
-        <div class="switch-title">
-          Дозвіл на сповіщення
+  <!-- =========================
+       СПОВІЩЕННЯ
+  ========================== -->
+
+  <section
+    id="screen-notifications"
+    class="screen"
+    aria-label="Сповіщення"
+  >
+
+    <h1 class="page-title">🔔 Сповіщення</h1>
+
+    <p class="page-subtitle">
+      Налаштуйте GPS, звук, голос та вібрацію для подій поруч.
+    </p>
+
+
+    <div class="settings-card">
+
+      <div class="settings-title">
+        Доступи
+      </div>
+
+      <div class="settings-description">
+        Для роботи сповіщень браузер може запросити дозвіл на GPS та системні повідомлення.
+      </div>
+
+
+      <div class="main-toggle">
+
+        <div>
+          <div class="toggle-label">
+            Доступ до GPS для отримання повідомлень
+          </div>
+
+          <div class="toggle-description">
+            Визначає, чи перебуваєте ви в зоні події.
+          </div>
         </div>
 
-        <div class="switch-desc">
-          Дозволяє показувати системні повідомлення на телефоні.
-        </div>
+        <label class="switch">
+          <input
+            id="gpsToggle"
+            type="checkbox"
+          >
+          <span class="slider"></span>
+        </label>
 
       </div>
 
-      <input
-        id="notif"
-        type="checkbox"
+
+      <div class="main-toggle">
+
+        <div>
+          <div class="toggle-label">
+            Доступ до повідомлень
+          </div>
+
+          <div class="toggle-description">
+            Дозволяє показувати системні повідомлення.
+          </div>
+        </div>
+
+        <label class="switch">
+          <input
+            id="notificationToggle"
+            type="checkbox"
+          >
+          <span class="slider"></span>
+        </label>
+
+      </div>
+
+    </div>
+
+
+    <div class="settings-card">
+
+      <div class="settings-title">
+        🔊 Голос
+      </div>
+
+      <div class="settings-description">
+        Використовується українська озвучка. Якщо браузер має чоловічий український голос, він буде обраний автоматично.
+      </div>
+
+      <div class="small-toggle">
+
+        <span>
+          Увімкнути голосові повідомлення
+        </span>
+
+        <input
+          id="voiceToggle"
+          class="checkbox"
+          type="checkbox"
+        >
+
+      </div>
+
+      <div
+        id="voiceStatus"
+        style="
+          margin-top:10px;
+          font-size:12px;
+          color:#94a3b8;
+        "
       >
-
-    </div>
-
-  </section>
-
-
-  <!-- АКТИВНІ ЗОНИ -->
-
-  <section class="card">
-
-    <div class="card-title">
-      📡 Події поруч
-    </div>
-
-    <div id="activeList" class="active-list">
-      <div class="empty">
-        GPS ще не визначив ваше положення.
+        Перевірка голосів...
       </div>
+
+    </div>
+
+
+    <div
+      id="categorySettings"
+      class="settings-card"
+    >
+
+      <div class="settings-title">
+        Типи подій
+      </div>
+
+      <div class="settings-description">
+        Для кожного типу можна окремо ввімкнути вхід у зону, вихід із зони, звук та вібрацію.
+      </div>
+
     </div>
 
   </section>
 
 
-  <!-- НАЛАШТУВАННЯ КАТЕГОРІЙ -->
+  <!-- =========================
+       ІНФОРМАЦІЯ
+  ========================== -->
 
-  <section class="card">
+  <section
+    id="screen-info"
+    class="screen"
+    aria-label="Інформація"
+  >
 
-    <div class="card-title">
-      ⚙️ Налаштування сповіщень
+    <h1 class="page-title">ℹ️ Інформація</h1>
+
+    <p class="page-subtitle">
+      Про застосунок та його автора
+    </p>
+
+
+    <div class="info-card">
+
+      <div class="info-logo">
+        🗺️
+      </div>
+
+      <div class="info-title">
+        МапаПодійUA
+      </div>
+
+      <div class="info-beta">
+        Beta test
+      </div>
+
+      <div class="info-text">
+        МапаПодійUA — інформаційний PWA-застосунок для перегляду подій та отримання повідомлень про події поблизу.
+      </div>
+
     </div>
 
-    <div id="categories"></div>
 
-  </section>
+    <div class="info-card">
 
+      <div class="settings-title">
+        Автор
+      </div>
 
-  <!-- ТЕСТ -->
-
-  <section class="card">
-
-    <div class="card-title">
-      🔊 Перевірка звуку та голосу
-    </div>
-
-    <button
-      id="testSound"
-      class="btn secondary"
-      type="button"
-    >
-      🔊 Тест звуку
-    </button>
-
-    <button
-      id="testVoice"
-      class="btn secondary"
-      type="button"
-    >
-      👨 Тест чоловічого голосу
-    </button>
-
-    <button
-      id="testNotification"
-      class="btn secondary"
-      type="button"
-    >
-      🔔 Тест сповіщення
-    </button>
-
-  </section>
-
-
-  <!-- ІНФОРМАЦІЯ -->
-
-  <section class="card">
-
-    <div class="card-title">
-      ℹ️ Інформація
-    </div>
-
-    <div class="author">
-
-      <div>
-        Автор:
+      <div
+        class="info-text"
+        style="margin-top:8px"
+      >
         <strong>ESO NET LIVE</strong>
       </div>
 
-      <div>
-        Email:
-        <a href="mailto:esonetlive@gmail.com">
-          esonetlive@gmail.com
-        </a>
-      </div>
+      <a
+        class="link-button"
+        href="mailto:esonetlive@gmail.com"
+      >
+        📧 esonetlive@gmail.com
+      </a>
 
-      <div>
-        Discord:
-        <a
-          href="https://discord.gg/D4sjtzFC"
-          target="_blank"
-          rel="noopener"
-        >
-          https://discord.gg/D4sjtzFC
-        </a>
-      </div>
+      <a
+        class="link-button"
+        href="https://discord.gg/D4sjtzFC"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        💬 Discord — ЛС
+      </a>
 
-      <div class="bottom-note">
-        Ви можете приєднатися до нашої спільноти,
-        щоб допомагати людям актуальною інформацією.
-      </div>
+    </div>
+
+
+    <div class="community">
+
+      Ви можете приєднатися до нашої спільноти, щоб допомагати людям актуальною інформацією.
 
     </div>
 
   </section>
 
-</main>
 
-</div>
+  <!-- =========================
+       BOTTOM NAV
+  ========================== -->
+
+  <nav
+    class="bottom-nav"
+    aria-label="Навігація"
+  >
+
+    <button
+      id="navHome"
+      class="nav-button active"
+      data-screen="home"
+    >
+      <span class="nav-icon">🏠</span>
+      <span>Головна</span>
+    </button>
 
 
-<div id="toast" class="toast">
+    <button
+      id="navMap"
+      class="nav-button"
+      data-screen="map"
+    >
+      <span class="nav-icon">🗺️</span>
+      <span>Мапа</span>
+    </button>
 
-  <div id="toastTitle" class="toast-title"></div>
 
-  <div id="toastText" class="toast-text"></div>
+    <button
+      id="navNotifications"
+      class="nav-button"
+      data-screen="notifications"
+    >
+      <span class="nav-icon">🔔</span>
+      <span>Сповіщення</span>
+    </button>
+
+
+    <button
+      id="navInfo"
+      class="nav-button"
+      data-screen="info"
+    >
+      <span class="nav-icon">ℹ️</span>
+      <span>Інформація</span>
+    </button>
+
+  </nav>
+
+
+  <div id="toast"></div>
+
+
+  <!-- =========================
+       PERMISSION MODAL
+  ========================== -->
+
+  <div
+    id="permissionModal"
+    class="modal"
+  >
+
+    <div class="modal-content">
+
+      <div class="modal-title">
+        📍 Потрібен GPS
+      </div>
+
+      <div class="modal-text">
+        Для визначення подій поруч потрібно дозволити доступ до місцезнаходження.
+      </div>
+
+      <div class="modal-actions">
+
+        <button
+          id="modalCancel"
+          class="modal-btn modal-cancel"
+        >
+          Пізніше
+        </button>
+
+        <button
+          id="modalOk"
+          class="modal-btn modal-ok"
+        >
+          Дозволити
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
 
 </div>
 
@@ -685,1190 +1039,685 @@ hr{
 <script>
 "use strict";
 
-
 /* =========================================================
-   API
-   ========================================================= */
+   CONFIG
+========================================================= */
 
-const API =
+const API_URL =
   "https://script.google.com/macros/s/AKfycbyH07BGYi4eAREpB-kTuZJmO-8fgtxUN6jLmIzorJQiRzoBw4EeX2ocXQ68TcDamKVXZw/exec";
 
+/*
+  ВАЖНО:
+  Если выше у тебя уже есть рабочий API URL из Google Apps Script,
+  оставь именно его.
 
-/* =========================================================
-   SOUND
-   ========================================================= */
+  Если URL отличается от твоего текущего рабочего API,
+  замени API_URL на актуальный.
+*/
+
 
 const SOUND_PATH = "./Sound/";
 
 
-const SOUND_FILES = {
-
-  alarm:
-    SOUND_PATH + "alarm.mp3",
-
-  threat:
-    SOUND_PATH + "threat.mp3",
-
-  police:
-    SOUND_PATH + "police.mp3",
-
-  ambulance:
-    SOUND_PATH + "ambulance.mp3",
-
-  simple:
-    SOUND_PATH + "simple.mp3",
-
-  clock:
-    SOUND_PATH + "clock.mp3",
-
-  power:
-    SOUND_PATH + "power.mp3"
-
-};
-
-
 /* =========================================================
    CATEGORIES
-   ========================================================= */
+========================================================= */
 
-const CAT = {
+const CATEGORIES = {
 
-  "1": {
-    n:"🚨 Повітряна тривога",
-    c:"#ff0000",
-    r:3000,
-    e:"Увага! Повітряна тривога! Пройдіть до найближчого укриття.",
-    x:"Відбій повітряної тривоги!",
-    s:"alarm",
-    xok:1,
-    v:1
+  "1":{
+    name:"Повітряна тривога",
+    emoji:"🔴",
+    sound:"alarm.mp3",
+    entryText:
+      "Увага, повітряна тривога! Пройдіть в найблище укриття",
+    exitText:
+      "Відбій повітряной тривоги!",
+    exit:true,
+    volumeEntry:1,
+    volumeExit:1
   },
 
-  "3": {
-    n:"🔥 Пожежа",
-    c:"#ff6600",
-    r:800,
-    e:"Увага! Ви перебуваєте в зоні пожежі. Будь ласка, залиште небезпечну зону або, якщо це безпечно, допоможіть загасити пожежу.",
-    x:"Увага! Ви залишили зону пожежі або пожежу було ліквідовано.",
-    s:"threat",
-    xok:1,
-    v:1
+  "3":{
+    name:"Пожежа",
+    emoji:"🟠",
+    sound:"fire.mp3",
+    entryText:
+      "Увага, ви в зоні пожежи! Будь ласка покиньте або потушіть пожежу!",
+    exitText:
+      "Увага ви покинули зону або потушили пожежу",
+    exit:true,
+    volumeEntry:1,
+    volumeExit:1
   },
 
-  "4": {
-    n:"🚓 ТЦК чи поліція",
-    c:"#3388ff",
-    r:500,
-    e:"Увага! Поруч із вами можуть перебувати працівники ТЦК або поліцейські. Зберігайте спокій та дотримуйтеся закону.",
-    x:"Увага! Ви залишили небезпечну зону.",
-    s:"police",
-    xok:1,
-    v:1
+  "4":{
+    name:"ТЦК чи поліція",
+    emoji:"🔵",
+    sound:"police.mp3",
+    entryText:
+      "Увага, біля вас може бути ТЦК чи поліцеськи. Зберігайте спокій та не порушуйте свої правила!",
+    exitText:
+      "Увага, ви покинули зону.",
+    exit:true,
+    volumeEntry:1,
+    volumeExit:1
   },
 
-  "5": {
-    n:"💥 ДТП",
-    c:"#e60000",
-    r:300,
-    e:"Увага! Поруч сталася дорожньо-транспортна пригода. Зменште швидкість та будьте обережні.",
-    x:"",
-    s:"threat",
-    xok:0,
-    v:1
+  "5":{
+    name:"ДТП",
+    emoji:"💥",
+    sound:"accident.mp3",
+    entryText:
+      "Увага, біля вас відбулася аварія, зменшіть швидкість та поверніть назад",
+    exitText:"",
+    exit:false,
+    volumeEntry:1,
+    volumeExit:1
   },
 
-  "7": {
-    n:"🟢 Побутова подія",
-    c:"#888888",
-    r:0,
-    e:"Не панікуйте. Відбувається побутова подія. Ви можете продовжувати свої справи.",
-    x:"",
-    s:"simple",
-    xok:0,
-    v:0
+  "7":{
+    name:"Побут",
+    emoji:"🟢",
+    sound:"simple.mp3",
+    entryText:
+      "Не панікуйте, відбуваєтся побут. Ви можете продовжити свою роботу",
+    exitText:"",
+    exit:false,
+    volumeEntry:1,
+    volumeExit:1
   },
 
-  "9": {
-    n:"🚑 Екстрені служби",
-    c:"#ff3399",
-    r:500,
-    e:"Увага! Поруч працюють екстрені служби. Якщо побачите швидку допомогу або пожежну машину, пропустіть їх.",
-    x:"",
-    s:"ambulance",
-    xok:0,
-    v:1
+  "9":{
+    name:"Екстрені машини",
+    emoji:"🚨",
+    sound:"ambulance.mp3",
+    entryText:
+      "Увага, працює швидка чи пожежники. Тому якщо побачите, пропустіть!",
+    exitText:"",
+    exit:false,
+    volumeEntry:1,
+    volumeExit:1
   },
 
-  "10": {
-    n:"⚫ Поховання",
-    c:"#888888",
-    r:0,
-    e:"Будь ласка, поводьтеся тихо та не порушуйте спокій. Поруч може відбуватися поховання або ви перебуваєте на кладовищі.",
-    x:"",
-    s:"clock",
-    xok:0,
-    v:0
+  "10":{
+    name:"Похорони",
+    emoji:"⚫",
+    sound:"funeral.mp3",
+    entryText:
+      "Будь ласка, будьте тихим та не порушуйте дисціпліну, адже відбуваєтся похорони або ви на кладбіщі",
+    exitText:"",
+    exit:false,
+    volumeEntry:1,
+    volumeExit:1
   },
 
-  "12": {
-    n:"💡 Відключення електроенергії",
-    c:"#ffd700",
-    r:500,
-    e:"Світло було вимкнено. Ви можете переглянути карту, щоб дізнатися приблизний час його увімкнення.",
-    x:"Світло було увімкнено!",
-    s:"power",
-    xok:1,
-    v:1
+  "12":{
+    name:"Вимкнення світла",
+    emoji:"💡",
+    sound:"power.mp3",
+    entryText:
+      "Світло було вимкнено, ви можете подивитися на карту, щоб дізнатися приблизну увімкнення світла.",
+    exitText:
+      "Світло було увімкненно!",
+    exit:true,
+    volumeEntry:1,
+    volumeExit:1
   }
 
 };
-
-
-/* =========================================================
-   DOM
-   ========================================================= */
-
-const $ = id => document.getElementById(id);
-
-const gps =
-  $("gps");
-
-const notif =
-  $("notif");
-
-const gpsStart =
-  $("gpsStart");
-
-const gpsStatus =
-  $("gpsStatus");
-
-const gpsCoords =
-  $("gpsCoords");
-
-const gpsHeader =
-  $("gpsHeader");
-
-const gpsDot =
-  $("gpsDot");
-
-const statusIcon =
-  $("statusIcon");
-
-const statusTitle =
-  $("statusTitle");
-
-const statusSub =
-  $("statusSub");
-
-const activeCount =
-  $("activeCount");
-
-const activeList =
-  $("activeList");
-
-const categories =
-  $("categories");
-
-const apiDot =
-  $("apiDot");
-
-const apiStatus =
-  $("apiStatus");
-
-const toastEl =
-  $("toast");
-
-const toastTitle =
-  $("toastTitle");
-
-const toastText =
-  $("toastText");
-
-
-/* =========================================================
-   LOCAL STORAGE
-   ========================================================= */
-
-function loadConfig(){
-
-  try{
-
-    const raw =
-      localStorage.getItem("mapadoua-gps");
-
-    if(!raw){
-      return {};
-    }
-
-    const parsed =
-      JSON.parse(raw);
-
-    return parsed &&
-      typeof parsed === "object"
-      ? parsed
-      : {};
-
-  }catch(e){
-
-    console.warn(
-      "Помилка читання налаштувань:",
-      e
-    );
-
-    return {};
-
-  }
-
-}
-
-
-let cfg =
-  loadConfig();
-
-
-for(const id in CAT){
-
-  if(
-    !cfg[id] ||
-    typeof cfg[id] !== "object"
-  ){
-
-    cfg[id] = {};
-
-  }
-
-  if(
-    typeof cfg[id].entry !== "boolean"
-  ){
-
-    cfg[id].entry = true;
-
-  }
-
-  if(
-    typeof cfg[id].exit !== "boolean"
-  ){
-
-    cfg[id].exit =
-      !!CAT[id].xok;
-
-  }
-
-  if(
-    !Number.isFinite(
-      Number(cfg[id].volume)
-    )
-  ){
-
-    cfg[id].volume = 80;
-
-  }
-
-  if(
-    !Number.isFinite(
-      Number(cfg[id].exitVolume)
-    )
-  ){
-
-    cfg[id].exitVolume = 65;
-
-  }
-
-  if(
-    typeof cfg[id].vibrate !== "boolean"
-  ){
-
-    cfg[id].vibrate =
-      !!CAT[id].v;
-
-  }
-
-}
-
-
-function save(){
-
-  try{
-
-    localStorage.setItem(
-      "mapadoua-gps",
-      JSON.stringify(cfg)
-    );
-
-  }catch(e){
-
-    console.warn(
-      "Не вдалося зберегти налаштування:",
-      e
-    );
-
-  }
-
-}
 
 
 /* =========================================================
    STATE
-   ========================================================= */
+========================================================= */
 
 let events = [];
 
-let inside =
-  new Set();
+let position = null;
 
-let watch =
-  null;
+let gpsWatchId = null;
 
-let pos =
-  null;
+let apiTimer = null;
 
-let lastApiSuccess =
-  0;
+let currentScreen = "home";
 
-let toastTimer =
-  null;
+let previousInside = new Map();
+
+let lastNotificationAt = new Map();
+
+let speechVoices = [];
+
+let selectedVoice = null;
+
+let audioContext = null;
+
+let activeAudio = null;
+
+let toastTimer = null;
+
+
+/* =========================================================
+   DEFAULT SETTINGS
+========================================================= */
+
+const DEFAULT_SETTINGS = {
+
+  gpsEnabled:true,
+
+  notificationsEnabled:false,
+
+  voiceEnabled:true,
+
+  categories:{
+
+    "1":{
+      entry:true,
+      exit:true,
+      vibration:true,
+      entryVolume:1,
+      exitVolume:1
+    },
+
+    "3":{
+      entry:true,
+      exit:true,
+      vibration:true,
+      entryVolume:1,
+      exitVolume:1
+    },
+
+    "4":{
+      entry:true,
+      exit:true,
+      vibration:true,
+      entryVolume:1,
+      exitVolume:1
+    },
+
+    "5":{
+      entry:true,
+      exit:false,
+      vibration:true,
+      entryVolume:1,
+      exitVolume:1
+    },
+
+    "7":{
+      entry:true,
+      exit:false,
+      vibration:true,
+      entryVolume:1,
+      exitVolume:1
+    },
+
+    "9":{
+      entry:true,
+      exit:false,
+      vibration:true,
+      entryVolume:1,
+      exitVolume:1
+    },
+
+    "10":{
+      entry:true,
+      exit:false,
+      vibration:true,
+      entryVolume:1,
+      exitVolume:1
+    },
+
+    "12":{
+      entry:true,
+      exit:true,
+      vibration:true,
+      entryVolume:1,
+      exitVolume:1
+    }
+
+  }
+
+};
+
+
+let settings = loadSettings();
+
+
+/* =========================================================
+   STORAGE
+========================================================= */
+
+function deepClone(obj){
+  return JSON.parse(JSON.stringify(obj));
+}
+
+
+function loadSettings(){
+
+  try{
+
+    const raw =
+      localStorage.getItem("mapaPodiyUA_settings");
+
+    if(!raw){
+      return deepClone(DEFAULT_SETTINGS);
+    }
+
+    const parsed = JSON.parse(raw);
+
+    const result =
+      deepClone(DEFAULT_SETTINGS);
+
+    if(typeof parsed.gpsEnabled === "boolean"){
+      result.gpsEnabled =
+        parsed.gpsEnabled;
+    }
+
+    if(typeof parsed.notificationsEnabled === "boolean"){
+      result.notificationsEnabled =
+        parsed.notificationsEnabled;
+    }
+
+    if(typeof parsed.voiceEnabled === "boolean"){
+      result.voiceEnabled =
+        parsed.voiceEnabled;
+    }
+
+    if(parsed.categories){
+
+      for(const id of Object.keys(result.categories)){
+
+        if(!parsed.categories[id]){
+          continue;
+        }
+
+        const src = parsed.categories[id];
+        const dst = result.categories[id];
+
+        if(typeof src.entry === "boolean"){
+          dst.entry = src.entry;
+        }
+
+        if(typeof src.exit === "boolean"){
+          dst.exit = src.exit;
+        }
+
+        if(typeof src.vibration === "boolean"){
+          dst.vibration = src.vibration;
+        }
+
+        if(Number.isFinite(+src.entryVolume)){
+          dst.entryVolume =
+            Math.max(0,Math.min(1,+src.entryVolume));
+        }
+
+        if(Number.isFinite(+src.exitVolume)){
+          dst.exitVolume =
+            Math.max(0,Math.min(1,+src.exitVolume));
+        }
+
+      }
+
+    }
+
+    return result;
+
+  }catch(e){
+
+    console.warn(
+      "Не вдалося завантажити налаштування",
+      e
+    );
+
+    return deepClone(DEFAULT_SETTINGS);
+
+  }
+
+}
+
+
+function saveSettings(){
+
+  try{
+
+    localStorage.setItem(
+      "mapaPodiyUA_settings",
+      JSON.stringify(settings)
+    );
+
+  }catch(e){
+
+    console.warn(
+      "Не вдалося зберегти налаштування",
+      e
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   NAVIGATION
+========================================================= */
+
+function switchScreen(name){
+
+  const allowed = [
+    "home",
+    "map",
+    "notifications",
+    "info"
+  ];
+
+  if(!allowed.includes(name)){
+    name = "home";
+  }
+
+  currentScreen = name;
+
+  document
+    .querySelectorAll(".screen")
+    .forEach(screen => {
+
+      screen.classList.remove("active");
+
+    });
+
+  const target =
+    document.getElementById(
+      "screen-" + name
+    );
+
+  if(target){
+    target.classList.add("active");
+  }
+
+  document
+    .querySelectorAll(".nav-button")
+    .forEach(btn => {
+
+      btn.classList.toggle(
+        "active",
+        btn.dataset.screen === name
+      );
+
+    });
+
+  if(name === "map"){
+
+    setTimeout(() => {
+
+      const frame =
+        document.getElementById("mapFrame");
+
+      if(frame && frame.contentWindow){
+
+        try{
+
+          frame.contentWindow.postMessage(
+            {
+              type:"MAPA_APP_OPEN"
+            },
+            "*"
+          );
+
+        }catch(e){}
+
+      }
+
+    },100);
+
+  }
+
+}
+
+
+document
+  .querySelectorAll(".nav-button")
+  .forEach(btn => {
+
+    btn.addEventListener(
+      "click",
+      () => switchScreen(btn.dataset.screen)
+    );
+
+  });
 
 
 /* =========================================================
    TOAST
-   ========================================================= */
+========================================================= */
 
-function toast(title,text){
+function showToast(text){
 
-  toastTitle.textContent =
-    title || "";
+  const toast =
+    document.getElementById("toast");
 
-  toastText.textContent =
-    text || "";
+  if(!toast){
+    return;
+  }
 
-  toastEl.classList.add("show");
+  toast.textContent = text;
+
+  toast.classList.add("show");
 
   clearTimeout(toastTimer);
 
   toastTimer =
-    setTimeout(
-      () => {
-        toastEl.classList.remove("show");
-      },
-      5000
-    );
+    setTimeout(() => {
+
+      toast.classList.remove("show");
+
+    },3500);
 
 }
 
 
 /* =========================================================
-   RENDER CATEGORY SETTINGS
-   ========================================================= */
+   API
+========================================================= */
 
-function renderCategories(){
-
-  categories.innerHTML = "";
-
-  for(const id of Object.keys(CAT)){
-
-    const c =
-      CAT[id];
-
-    const s =
-      cfg[id];
-
-    const div =
-      document.createElement("div");
-
-    div.className =
-      "category";
-
-    div.style.borderLeftColor =
-      c.c;
-
-    div.innerHTML = `
-
-      <div class="category-head">
-
-        <div
-          class="category-icon"
-          style="border:1px solid ${c.c}55"
-        >
-          ${c.n.slice(0,2)}
-        </div>
-
-        <div class="category-name">
-          ${escapeHTML(c.n)}
-        </div>
-
-      </div>
-
-      <div class="category-settings">
-
-        <div class="switch-row">
-
-          <div class="switch-label">
-            <div class="switch-title">
-              Сповіщати при вході
-            </div>
-          </div>
-
-          <input
-            type="checkbox"
-            data-entry="${id}"
-            ${s.entry ? "checked" : ""}
-          >
-
-        </div>
-
-        ${
-          c.xok
-          ? `
-            <div class="switch-row">
-
-              <div class="switch-label">
-                <div class="switch-title">
-                  Сповіщати при виході
-                </div>
-              </div>
-
-              <input
-                type="checkbox"
-                data-exit="${id}"
-                ${s.exit ? "checked" : ""}
-              >
-
-            </div>
-          `
-          : ""
-        }
-
-        <div class="setting-line">
-
-          <label>
-            Гучність входу
-          </label>
-
-          <div class="range-wrap">
-
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value="${Number(s.volume)}"
-              data-volume="${id}"
-            >
-
-            <span
-              class="range-value"
-              id="volumeValue-${id}"
-            >
-              ${Number(s.volume)}%
-            </span>
-
-          </div>
-
-        </div>
-
-        ${
-          c.xok
-          ? `
-            <div class="setting-line">
-
-              <label>
-                Гучність виходу
-              </label>
-
-              <div class="range-wrap">
-
-                <input
-                  type="range"
-                  min="0"
-                  max="100"
-                  value="${Number(s.exitVolume)}"
-                  data-exit-volume="${id}"
-                >
-
-                <span
-                  class="range-value"
-                  id="exitVolumeValue-${id}"
-                >
-                  ${Number(s.exitVolume)}%
-                </span>
-
-              </div>
-
-            </div>
-          `
-          : ""
-        }
-
-        ${
-          c.v
-          ? `
-            <div class="switch-row">
-
-              <div class="switch-label">
-
-                <div class="switch-title">
-                  Вібрація
-                </div>
-
-              </div>
-
-              <input
-                type="checkbox"
-                data-vibrate="${id}"
-                ${s.vibrate ? "checked" : ""}
-              >
-
-            </div>
-          `
-          : ""
-        }
-
-      </div>
-    `;
-
-    categories.appendChild(div);
-
-  }
-
-
-  categories
-    .querySelectorAll("[data-entry]")
-    .forEach(el => {
-
-      el.addEventListener(
-        "change",
-        () => {
-
-          const id =
-            el.dataset.entry;
-
-          cfg[id].entry =
-            el.checked;
-
-          save();
-
-        }
-      );
-
-    });
-
-
-  categories
-    .querySelectorAll("[data-exit]")
-    .forEach(el => {
-
-      el.addEventListener(
-        "change",
-        () => {
-
-          const id =
-            el.dataset.exit;
-
-          cfg[id].exit =
-            el.checked;
-
-          save();
-
-        }
-      );
-
-    });
-
-
-  categories
-    .querySelectorAll("[data-volume]")
-    .forEach(el => {
-
-      el.addEventListener(
-        "input",
-        () => {
-
-          const id =
-            el.dataset.volume;
-
-          cfg[id].volume =
-            Number(el.value);
-
-          const value =
-            $("volumeValue-"+id);
-
-          if(value){
-
-            value.textContent =
-              el.value + "%";
-
-          }
-
-          save();
-
-        }
-      );
-
-    });
-
-
-  categories
-    .querySelectorAll("[data-exit-volume]")
-    .forEach(el => {
-
-      el.addEventListener(
-        "input",
-        () => {
-
-          const id =
-            el.dataset.exitVolume;
-
-          cfg[id].exitVolume =
-            Number(el.value);
-
-          const value =
-            $("exitVolumeValue-"+id);
-
-          if(value){
-
-            value.textContent =
-              el.value + "%";
-
-          }
-
-          save();
-
-        }
-      );
-
-    });
-
-
-  categories
-    .querySelectorAll("[data-vibrate]")
-    .forEach(el => {
-
-      el.addEventListener(
-        "change",
-        () => {
-
-          const id =
-            el.dataset.vibrate;
-
-          cfg[id].vibrate =
-            el.checked;
-
-          save();
-
-        }
-      );
-
-    });
-
-}
-
-
-/* =========================================================
-   ESCAPE HTML
-   ========================================================= */
-
-function escapeHTML(value){
-
-  return String(value ?? "")
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;")
-    .replaceAll('"',"&quot;")
-    .replaceAll("'","&#039;");
-
-}
-
-
-/* =========================================================
-   NOTIFICATION PERMISSION
-   ========================================================= */
-
-async function updateNotificationPermission(){
-
-  if(
-    !("Notification" in window)
-  ){
-
-    return;
-
-  }
-
-  if(
-    Notification.permission === "granted"
-  ){
-
-    notif.checked = true;
-
-  }else if(
-    Notification.permission === "denied"
-  ){
-
-    notif.checked = false;
-
-  }
-
-}
-
-
-async function enableNotifications(){
-
-  if(
-    !("Notification" in window)
-  ){
-
-    notif.checked = false;
-
-    toast(
-      "Сповіщення недоступні",
-      "Цей браузер не підтримує Notification API."
-    );
-
-    return;
-
-  }
-
-  if(
-    Notification.permission === "granted"
-  ){
-
-    notif.checked = true;
-
-    toast(
-      "Сповіщення дозволені",
-      "Системні повідомлення вже увімкнені."
-    );
-
-    return;
-
-  }
-
-  if(
-    Notification.permission === "denied"
-  ){
-
-    notif.checked = false;
-
-    toast(
-      "Сповіщення заблоковані",
-      "Дозвольте сповіщення в налаштуваннях браузера."
-    );
-
-    return;
-
-  }
+async function fetchEvents(){
 
   try{
 
-    const result =
-      await Notification.requestPermission();
-
-    notif.checked =
-      result === "granted";
-
-    if(result === "granted"){
-
-      toast(
-        "Сповіщення увімкнено",
-        "МапаПодійUA може показувати повідомлення."
+    const response =
+      await fetch(
+        API_URL +
+        "?t=" +
+        Date.now(),
+        {
+          cache:"no-store"
+        }
       );
+
+    if(!response.ok){
+
+      throw new Error(
+        "HTTP " +
+        response.status
+      );
+
+    }
+
+    const data =
+      await response.json();
+
+    let list = [];
+
+    if(Array.isArray(data)){
+
+      list = data;
+
+    }else if(
+      data &&
+      Array.isArray(data.events)
+    ){
+
+      list = data.events;
+
+    }else if(
+      data &&
+      Array.isArray(data.data)
+    ){
+
+      list = data.data;
 
     }else{
 
-      toast(
-        "Сповіщення не дозволені",
-        "Дозвіл можна змінити в налаштуваннях браузера."
+      /*
+        Не перетворюємо помилкову відповідь API
+        на порожній список.
+      */
+
+      if(data && data.ok === false){
+
+        throw new Error(
+          data.error ||
+          "API повернув помилку"
+        );
+
+      }
+
+      throw new Error(
+        "Невідомий формат API"
       );
 
     }
 
-  }catch(e){
+    events = list
+      .filter(Boolean)
+      .map(normalizeEvent);
+
+    checkZones();
+
+    renderHome();
+
+  }catch(error){
 
     console.warn(
-      "Notification permission:",
-      e
+      "Помилка API:",
+      error
     );
 
-  }
+    const gpsText =
+      document.getElementById("gpsText");
 
-}
+    if(gpsText && !events.length){
 
+      gpsText.textContent =
+        "Не вдалося отримати події";
 
-/* =========================================================
-   GPS
-   ========================================================= */
+      gpsText.className =
+        "location-subtitle gps-error";
 
-function start(){
-
-  if(
-    !navigator.geolocation
-  ){
-
-    toast(
-      "GPS недоступний",
-      "Браузер не підтримує Geolocation API."
-    );
-
-    return;
-
-  }
-
-  if(
-    watch !== null
-  ){
-
-    return;
-
-  }
-
-
-  navigator.geolocation.getCurrentPosition(
-    got,
-    err,
-    {
-      enableHighAccuracy:true,
-      maximumAge:10000,
-      timeout:15000
     }
-  );
 
+    /*
+      Якщо API тимчасово впав,
+      старі events не стираємо.
+    */
 
-  watch =
-    navigator.geolocation.watchPosition(
-      got,
-      err,
-      {
-        enableHighAccuracy:true,
-        maximumAge:10000,
-        timeout:20000
-      }
-    );
-
-
-  cfg.gps =
-    true;
-
-  save();
-
-  gps.checked =
-    true;
-
-  gpsStart.textContent =
-    "⛔ Вимкнути GPS";
-
-  gpsStart.classList.remove("green");
-
-  gpsStart.classList.add("danger");
+  }
 
 }
 
 
-function stop(){
+function normalizeEvent(o){
 
-  if(
-    watch !== null
-  ){
-
-    navigator.geolocation.clearWatch(
-      watch
-    );
-
-    watch = null;
-
-  }
-
-
-  cfg.gps =
-    false;
-
-  save();
-
-  gps.checked =
-    false;
-
-  inside =
-    new Set();
-
-  gpsStatus.textContent =
-    "GPS вимкнено";
-
-  gpsCoords.textContent =
-    "Координати ще не отримані.";
-
-  gpsHeader.textContent =
-    "GPS вимкнено";
-
-  gpsDot.style.background =
-    "#777";
-
-  statusIcon.textContent =
-    "📍";
-
-  statusTitle.textContent =
-    "GPS вимкнено";
-
-  statusSub.textContent =
-    "Увімкніть GPS, щоб отримувати повідомлення про події поруч із вами.";
-
-  gpsStart.textContent =
-    "📍 Увімкнути GPS";
-
-  gpsStart.classList.remove("danger");
-
-  activeCount.textContent =
-    "Активних зон: 0";
-
-  activeList.innerHTML =
-    `<div class="empty">
-      GPS вимкнено.
-    </div>`;
-
-}
-
-
-function err(e){
-
-  console.warn(
-    "GPS error:",
-    e
-  );
-
-
-  if(
-    e &&
-    e.code === 1
-  ){
-
-    gpsStatus.textContent =
-      "GPS: доступ заборонено";
-
-    gpsCoords.textContent =
-      "Дозвольте доступ до геолокації для цього сайту.";
-
-    gpsHeader.textContent =
-      "GPS заборонено";
-
-    gpsDot.style.background =
-      "#f44";
-
-    statusIcon.textContent =
-      "⛔";
-
-    statusTitle.textContent =
-      "GPS заблоковано";
-
-    statusSub.textContent =
-      "Дозвольте браузеру використовувати геолокацію.";
-
-    return;
-
-  }
-
-
-  gpsStatus.textContent =
-    "Помилка GPS";
-
-  gpsCoords.textContent =
-    e && e.message
-      ? e.message
-      : "Не вдалося отримати координати.";
-
-  gpsDot.style.background =
-    "#f44";
-
-}
-
-
-/* =========================================================
-   GPS POSITION
-   ========================================================= */
-
-function got(p){
-
-  if(
-    !p ||
-    !p.coords
-  ){
-
-    return;
-
-  }
-
-
-  const lat =
-    Number(p.coords.latitude);
-
-  const lng =
-    Number(p.coords.longitude);
-
-  const acc =
-    Number(p.coords.accuracy);
-
-
-  if(
-    !Number.isFinite(lat) ||
-    !Number.isFinite(lng)
-  ){
-
-    return;
-
-  }
-
-
-  pos = {
-
-    lat,
-    lng,
-
-    acc:
-      Number.isFinite(acc)
-        ? acc
-        : 0
-
+  const event = {
+    ...o
   };
 
+  event.id =
+    String(
+      o.id ??
+      o.guid ??
+      (
+        String(o.type ?? "") +
+        ":" +
+        String(o.lat ?? "") +
+        ":" +
+        String(o.lng ?? "") +
+        ":" +
+        String(o.village ?? "")
+      )
+    );
 
-  gpsStatus.textContent =
-    "GPS працює";
+  event.type =
+    String(o.type ?? "");
 
-  gpsCoords.textContent =
-    `${pos.lat.toFixed(5)}, ${pos.lng.toFixed(5)} • ±${Math.round(pos.acc)} м`;
+  event.lat =
+    Number(o.lat);
 
-  gpsHeader.textContent =
-    `GPS • ±${Math.round(pos.acc)} м`;
+  event.lng =
+    Number(o.lng);
 
-  gpsDot.style.background =
-    "#39c56b";
+  if(o.radius === "" || o.radius == null){
 
-  statusIcon.textContent =
-    "📍";
+    event.radius = null;
 
-  statusTitle.textContent =
-    "GPS працює";
+  }else{
 
-  statusSub.textContent =
-    "Перевіряємо події поруч із вашим положенням.";
+    event.radius =
+      Number(o.radius);
 
-  check();
+  }
 
-}
+  event.geojson =
+    o.geojson ?? null;
 
+  event.village =
+    String(o.village ?? "");
 
-/* =========================================================
-   DISTANCE
-   ========================================================= */
+  event.title =
+    String(o.title ?? "");
 
-function dist(
-  lat1,
-  lng1,
-  lat2,
-  lng2
-){
+  event.desc =
+    String(o.desc ?? "");
 
-  const R =
-    6371000;
+  event.source =
+    String(o.source ?? "");
 
-  const toRad =
-    deg => deg * Math.PI / 180;
+  event.url =
+    String(o.url ?? "");
 
-  const dLat =
-    toRad(lat2-lat1);
-
-  const dLng =
-    toRad(lng2-lng1);
-
-  const a =
-    Math.sin(dLat/2) ** 2 +
-    Math.cos(toRad(lat1)) *
-    Math.cos(toRad(lat2)) *
-    Math.sin(dLng/2) ** 2;
-
-  return (
-    R *
-    2 *
-    Math.atan2(
-      Math.sqrt(a),
-      Math.sqrt(1-a)
-    )
-  );
+  return event;
 
 }
 
 
 /* =========================================================
-   GEOJSON PARSER
-   ========================================================= */
+   GEOJSON
+========================================================= */
 
 function parseGeoJSON(value){
 
-  if(
-    !value
-  ){
-
+  if(!value){
     return null;
-
   }
 
-
-  if(
-    typeof value === "object"
-  ){
-
+  if(typeof value === "object"){
     return value;
-
   }
 
-
-  if(
-    typeof value !== "string"
-  ){
-
+  if(typeof value !== "string"){
     return null;
-
   }
 
-
-  let text =
+  const text =
     value.trim();
 
-
-  if(
-    !text
-  ){
-
+  if(!text){
     return null;
-
   }
-
 
   try{
 
-    let parsed =
-      JSON.parse(text);
-
-
-    /*
-      Іноді GeoJSON у Google Sheet
-      може бути JSON-рядком усередині
-      JSON-рядка.
-    */
-
-    if(
-      typeof parsed === "string"
-    ){
-
-      parsed =
-        JSON.parse(parsed);
-
-    }
-
-
-    return parsed;
+    return JSON.parse(text);
 
   }catch(e){
-
-    console.warn(
-      "Невірний GeoJSON:",
-      e
-    );
 
     return null;
 
@@ -1877,45 +1726,23 @@ function parseGeoJSON(value){
 }
 
 
-/* =========================================================
-   POINT IN RING
-   ========================================================= */
+function pointInRing(lat,lng,ring){
 
-function pointInRing(
-  lat,
-  lng,
-  ring
-){
-
-  if(
-    !Array.isArray(ring) ||
-    ring.length < 3
-  ){
-
+  if(!Array.isArray(ring) || ring.length < 3){
     return false;
-
   }
 
-
-  let inside =
-    false;
-
+  let inside = false;
 
   for(
-    let i=0,
-        j=ring.length-1;
-
-    i<ring.length;
-
-    j=i++
+    let i = 0,
+    j = ring.length - 1;
+    i < ring.length;
+    j = i++
   ){
 
-    const a =
-      ring[i];
-
-    const b =
-      ring[j];
-
+    const a = ring[i];
+    const b = ring[j];
 
     if(
       !Array.isArray(a) ||
@@ -1923,34 +1750,19 @@ function pointInRing(
       a.length < 2 ||
       b.length < 2
     ){
-
       continue;
-
     }
-
 
     /*
       GeoJSON:
-
-      [longitude, latitude]
-
-      GPS:
-
-      lat, lng
+      [lng,lat]
     */
 
-    const xi =
-      Number(a[0]);
+    const xi = Number(a[0]);
+    const yi = Number(a[1]);
 
-    const yi =
-      Number(a[1]);
-
-    const xj =
-      Number(b[0]);
-
-    const yj =
-      Number(b[1]);
-
+    const xj = Number(b[0]);
+    const yj = Number(b[1]);
 
     if(
       !Number.isFinite(xi) ||
@@ -1958,122 +1770,60 @@ function pointInRing(
       !Number.isFinite(xj) ||
       !Number.isFinite(yj)
     ){
-
       continue;
-
     }
-
-
-    if(
-      yi === yj
-    ){
-
-      continue;
-
-    }
-
 
     const intersect =
       (
-        (yi > lat) !==
-        (yj > lat)
+        (yi > lat) !== (yj > lat)
       ) &&
       (
         lng <
         (
-          (xj-xi) *
-          (lat-yi) /
-          (yj-yi)
-        ) +
-        xi
+          (xj - xi) *
+          (lat - yi) /
+          ((yj - yi) || 1e-12)
+          + xi
+        )
       );
 
-
     if(intersect){
-
-      inside =
-        !inside;
-
+      inside = !inside;
     }
 
   }
-
 
   return inside;
 
 }
 
 
-/* =========================================================
-   POINT IN POLYGON
-   ========================================================= */
+function pointInPolygon(lat,lng,rings){
 
-function pointInPolygon(
-  lat,
-  lng,
-  rings
-){
-
-  if(
-    !Array.isArray(rings) ||
-    rings.length === 0
-  ){
-
+  if(!Array.isArray(rings) || !rings.length){
     return false;
-
   }
 
-
-  /*
-    Перше кільце = зовнішня межа.
-  */
-
-  if(
-    !pointInRing(
-      lat,
-      lng,
-      rings[0]
-    )
-  ){
-
+  if(!pointInRing(lat,lng,rings[0])){
     return false;
-
   }
 
-
   /*
-    Наступні кільця = holes.
+    Holes.
   */
 
-  for(
-    let i=1;
-    i<rings.length;
-    i++
-  ){
+  for(let i=1;i<rings.length;i++){
 
-    if(
-      pointInRing(
-        lat,
-        lng,
-        rings[i]
-      )
-    ){
-
+    if(pointInRing(lat,lng,rings[i])){
       return false;
-
     }
 
   }
-
 
   return true;
 
 }
 
-
-/* =========================================================
-   GEOJSON GEOMETRY
-   ========================================================= */
 
 function geometryContains(
   geometry,
@@ -2081,45 +1831,33 @@ function geometryContains(
   lng
 ){
 
-  if(
-    !geometry ||
-    typeof geometry !== "object"
-  ){
-
+  if(!geometry){
     return false;
-
   }
 
+  const type =
+    geometry.type;
 
-  if(
-    geometry.type === "Polygon"
-  ){
+  const coordinates =
+    geometry.coordinates;
+
+  if(type === "Polygon"){
 
     return pointInPolygon(
       lat,
       lng,
-      geometry.coordinates
+      coordinates
     );
 
   }
 
+  if(type === "MultiPolygon"){
 
-  if(
-    geometry.type === "MultiPolygon"
-  ){
-
-    if(
-      !Array.isArray(
-        geometry.coordinates
-      )
-    ){
-
+    if(!Array.isArray(coordinates)){
       return false;
-
     }
 
-
-    return geometry.coordinates.some(
+    return coordinates.some(
       polygon =>
         pointInPolygon(
           lat,
@@ -2130,26 +1868,14 @@ function geometryContains(
 
   }
 
+  if(type === "GeometryCollection"){
 
-  if(
-    geometry.type === "GeometryCollection"
-  ){
-
-    if(
-      !Array.isArray(
-        geometry.geometries
-      )
-    ){
-
-      return false;
-
-    }
-
-
-    return geometry.geometries.some(
-      g =>
+    return Array.isArray(
+      geometry.geometries
+    ) && geometry.geometries.some(
+      geometryItem =>
         geometryContains(
-          g,
+          geometryItem,
           lat,
           lng
         )
@@ -2157,21 +1883,10 @@ function geometryContains(
 
   }
 
-
-  /*
-    Point / LineString / MultiPoint /
-    MultiLineString не використовуємо
-    як зону.
-  */
-
   return false;
 
 }
 
-
-/* =========================================================
-   GEOJSON CONTAINS
-   ========================================================= */
 
 function geoJSONContains(
   value,
@@ -2179,38 +1894,35 @@ function geoJSONContains(
   lng
 ){
 
-  const data =
+  const geo =
     parseGeoJSON(value);
 
-
-  if(
-    !data
-  ){
-
+  if(!geo){
     return false;
+  }
+
+  if(geo.type === "Feature"){
+
+    return geometryContains(
+      geo.geometry,
+      lat,
+      lng
+    );
 
   }
 
+  if(geo.type === "FeatureCollection"){
 
-  if(
-    data.type === "FeatureCollection"
-  ){
-
-    if(
-      !Array.isArray(
-        data.features
-      )
-    ){
-
+    if(!Array.isArray(geo.features)){
       return false;
-
     }
 
-
-    return data.features.some(
+    return geo.features.some(
       feature =>
-        geoJSONContains(
-          feature,
+        feature &&
+        feature.type === "Feature" &&
+        geometryContains(
+          feature.geometry,
           lat,
           lng
         )
@@ -2218,22 +1930,8 @@ function geoJSONContains(
 
   }
 
-
-  if(
-    data.type === "Feature"
-  ){
-
-    return geoJSONContains(
-      data.geometry,
-      lat,
-      lng
-    );
-
-  }
-
-
   return geometryContains(
-    data,
+    geo,
     lat,
     lng
   );
@@ -2241,427 +1939,700 @@ function geoJSONContains(
 }
 
 
-/* =========================================================
-   GEOJSON EXISTS
-   ========================================================= */
+function hasGeoJSON(event){
 
-function getGeoJSON(
-  value
-){
+  const geo =
+    parseGeoJSON(event.geojson);
 
-  const parsed =
-    parseGeoJSON(value);
-
-  if(
-    !parsed ||
-    typeof parsed !== "object"
-  ){
-
-    return null;
-
-  }
-
-  return parsed;
+  return !!geo;
 
 }
 
 
 /* =========================================================
-   CHECK GPS ZONES
-   ========================================================= */
+   DISTANCE
+========================================================= */
 
-function check(){
+function distanceMeters(
+  lat1,
+  lng1,
+  lat2,
+  lng2
+){
+
+  const R = 6371000;
+
+  const p1 =
+    lat1 *
+    Math.PI /
+    180;
+
+  const p2 =
+    lat2 *
+    Math.PI /
+    180;
+
+  const dp =
+    (lat2-lat1) *
+    Math.PI /
+    180;
+
+  const dl =
+    (lng2-lng1) *
+    Math.PI /
+    180;
+
+  const a =
+    Math.sin(dp/2) *
+    Math.sin(dp/2) +
+    Math.cos(p1) *
+    Math.cos(p2) *
+    Math.sin(dl/2) *
+    Math.sin(dl/2);
+
+  const c =
+    2 *
+    Math.atan2(
+      Math.sqrt(a),
+      Math.sqrt(1-a)
+    );
+
+  return R*c;
+
+}
+
+
+/* =========================================================
+   EVENT RADIUS
+========================================================= */
+
+function getEventRadius(event){
 
   if(
-    !pos
+    event.radius !== null &&
+    Number.isFinite(event.radius)
   ){
+
+    return event.radius;
+
+  }
+
+  return null;
+
+}
+
+
+/* =========================================================
+   CHECK ZONE
+========================================================= */
+
+function eventContainsPosition(
+  event,
+  lat,
+  lng
+){
+
+  /*
+    1. GeoJSON має пріоритет.
+  */
+
+  if(hasGeoJSON(event)){
+
+    return geoJSONContains(
+      event.geojson,
+      lat,
+      lng
+    );
+
+  }
+
+
+  /*
+    2. Інакше використовуємо radius.
+  */
+
+  const radius =
+    getEventRadius(event);
+
+  if(
+    !(radius > 0) ||
+    !Number.isFinite(event.lat) ||
+    !Number.isFinite(event.lng)
+  ){
+
+    return false;
+
+  }
+
+  const distance =
+    distanceMeters(
+      lat,
+      lng,
+      event.lat,
+      event.lng
+    );
+
+  return distance <= radius;
+
+}
+
+
+/* =========================================================
+   GPS
+========================================================= */
+
+function startGPS(){
+
+  if(!("geolocation" in navigator)){
+
+    updateGPSStatus(
+      "GPS не підтримується цим браузером.",
+      "error"
+    );
 
     return;
 
   }
 
+  if(gpsWatchId !== null){
+    return;
+  }
 
-  const cur =
-    new Set();
+  updateGPSStatus(
+    "Отримуємо місцезнаходження...",
+    "wait"
+  );
 
-  const near =
-    [];
+  gpsWatchId =
+    navigator.geolocation.watchPosition(
+      onPosition,
+      onPositionError,
+      {
+        enableHighAccuracy:true,
+        maximumAge:5000,
+        timeout:15000
+      }
+    );
+
+}
 
 
-  for(
-    const o of events
+function stopGPS(){
+
+  if(
+    gpsWatchId !== null &&
+    "geolocation" in navigator
   ){
 
-    if(
-      !o ||
-      typeof o !== "object"
-    ){
+    navigator.geolocation.clearWatch(
+      gpsWatchId
+    );
 
-      continue;
+  }
+
+  gpsWatchId = null;
+
+  position = null;
+
+  updateGPSStatus(
+    "GPS вимкнено",
+    "wait"
+  );
+
+  renderHome();
+
+}
+
+
+function onPosition(pos){
+
+  position = {
+    lat:pos.coords.latitude,
+    lng:pos.coords.longitude,
+    accuracy:
+      Number(pos.coords.accuracy) || null
+  };
+
+  updateGPSStatus(
+    "GPS працює",
+    "ok"
+  );
+
+  checkZones();
+
+  renderHome();
+
+}
+
+
+function onPositionError(error){
+
+  let message =
+    "Не вдалося отримати GPS.";
+
+  if(error){
+
+    if(error.code === 1){
+
+      message =
+        "Доступ до GPS заборонено.";
+
+    }else if(error.code === 2){
+
+      message =
+        "Місцезнаходження недоступне.";
+
+    }else if(error.code === 3){
+
+      message =
+        "Час очікування GPS вичерпано.";
 
     }
 
+  }
 
-    const id =
-      String(
-        o.type ?? ""
-      ).trim();
+  updateGPSStatus(
+    message,
+    "error"
+  );
+
+}
 
 
-    const c =
-      CAT[id];
+function updateGPSStatus(
+  text,
+  state
+){
 
+  const gpsText =
+    document.getElementById("gpsText");
 
-    if(
-      !c
-    ){
+  const gpsBox =
+    document.getElementById("gpsBox");
 
-      continue;
+  if(gpsText){
+
+    gpsText.textContent =
+      text;
+
+    gpsText.className =
+      "location-subtitle " +
+      (
+        state === "ok"
+          ? "gps-ok"
+          : state === "error"
+            ? "gps-error"
+            : "gps-wait"
+      );
+
+  }
+
+  if(gpsBox){
+
+    if(state === "ok" && position){
+
+      gpsBox.innerHTML =
+        "📡 GPS активний.<br>" +
+        "Точність: " +
+        (
+          position.accuracy
+            ? Math.round(position.accuracy) + " м"
+            : "невідома"
+        );
+
+    }else{
+
+      gpsBox.textContent =
+        "📡 " + text;
 
     }
 
+  }
 
-    /*
-      Унікальний ключ події.
+}
 
-      Важливо:
-      саме id використовується для
-      запам'ятовування стану входу.
-    */
+
+/* =========================================================
+   ZONE CHECK
+========================================================= */
+
+function checkZones(){
+
+  if(!position){
+    return;
+  }
+
+  const currentInside =
+    new Map();
+
+  for(const event of events){
+
+    const type =
+      String(event.type ?? "");
+
+    const category =
+      CATEGORIES[type];
+
+    if(!category){
+      continue;
+    }
 
     const key =
       String(
-        o.id ??
+        event.id ??
         (
-          id +
+          type +
           ":" +
-          String(o.lat ?? "") +
+          event.lat +
           ":" +
-          String(o.lng ?? "") +
-          ":" +
-          String(o.title ?? "") +
-          ":" +
-          String(o.desc ?? "")
+          event.lng
         )
       );
 
-
-    /*
-      ======================================================
-      1. СПОЧАТКУ ПЕРЕВІРЯЄМО GEOJSON
-      ======================================================
-    */
-
-    const geo =
-      getGeoJSON(
-        o.geojson
+    const inside =
+      eventContainsPosition(
+        event,
+        position.lat,
+        position.lng
       );
 
-
-    let active =
-      false;
-
-    let distance =
-      null;
-
-    let usingGeoJSON =
-      false;
-
-
-    if(
-      geo
-    ){
-
-      usingGeoJSON =
-        true;
-
-
-      active =
-        geoJSONContains(
-          geo,
-          pos.lat,
-          pos.lng
-        );
-
-    }else{
-
-      /*
-        ====================================================
-        2. ЯКЩО GEOJSON НЕМАЄ — ПЕРЕВІРЯЄМО RADIUS
-        ====================================================
-      */
-
-      const lat =
-        Number(o.lat);
-
-      const lng =
-        Number(o.lng);
-
-
-      const radius =
-        (
-          o.radius === "" ||
-          o.radius == null
-        )
-        ? Number(c.r)
-        : Number(o.radius);
-
-
-      /*
-        Якщо radius = 0,
-        така подія без GeoJSON
-        не може мати GPS-зону.
-      */
-
-      if(
-        !Number.isFinite(lat) ||
-        !Number.isFinite(lng) ||
-        !Number.isFinite(radius) ||
-        radius <= 0
-      ){
-
-        continue;
-
+    currentInside.set(
+      key,
+      {
+        event,
+        inside
       }
+    );
+
+  }
 
 
-      distance =
-        dist(
-          pos.lat,
-          pos.lng,
-          lat,
-          lng
-        );
+  /*
+    Вхід / вихід.
+  */
 
+  for(
+    const [
+      key,
+      state
+    ]
+    of currentInside
+  ){
 
-      active =
-        distance <= radius;
+    const wasInside =
+      previousInside.get(key) === true;
+
+    const isInside =
+      state.inside === true;
+
+    if(!wasInside && isInside){
+
+      handleZoneEnter(
+        state.event
+      );
 
     }
 
+    if(wasInside && !isInside){
 
-    if(
-      active
-    ){
-
-      cur.add(key);
-
-
-      near.push({
-        o,
-        id,
-        c,
-        key,
-        distance,
-        usingGeoJSON
-      });
-
-
-      /*
-        Новий вхід у зону.
-      */
-
-      if(
-        !inside.has(key)
-      ){
-
-        fire(
-          o,
-          "entry"
-        );
-
-      }
-
-    }else{
-
-      /*
-        Вихід із зони.
-      */
-
-      if(
-        inside.has(key)
-      ){
-
-        fire(
-          o,
-          "exit"
-        );
-
-      }
+      handleZoneExit(
+        state.event
+      );
 
     }
 
   }
 
 
-  inside =
-    cur;
+  /*
+    Якщо подія зникла з API,
+    старий стан теж видаляємо.
+  */
+
+  previousInside =
+    new Map(
+      Array.from(
+        currentInside.entries()
+      )
+      .map(
+        ([key,state]) =>
+          [key,state.inside]
+      )
+    );
+
+}
 
 
-  renderActive(
-    near
+/* =========================================================
+   ACTIVE HOME ZONES
+========================================================= */
+
+function getActiveEvents(){
+
+  if(!position){
+    return [];
+  }
+
+  return events.filter(
+    event => {
+
+      if(!CATEGORIES[String(event.type)]){
+        return false;
+      }
+
+      return eventContainsPosition(
+        event,
+        position.lat,
+        position.lng
+      );
+
+    }
   );
 
 }
 
 
 /* =========================================================
-   RENDER ACTIVE ZONES
-   ========================================================= */
+   HOME RENDER
+========================================================= */
 
-function renderActive(
-  near
-){
+function renderHome(){
 
-  activeCount.textContent =
-    `Активних зон: ${near.length}`;
+  const list =
+    document.getElementById("statusList");
+
+  if(!list){
+    return;
+  }
+
+  if(!position){
+
+    list.innerHTML = `
+      <div class="safe">
+        ⏳ Очікування вашого місцезнаходження...
+      </div>
+    `;
+
+    return;
+
+  }
+
+  const active =
+    getActiveEvents();
+
+  /*
+    Один тип показуємо один раз,
+    навіть якщо в зоні кілька подій.
+  */
+
+  const grouped =
+    new Map();
+
+  for(const event of active){
+
+    const type =
+      String(event.type);
+
+    if(!grouped.has(type)){
+      grouped.set(type,event);
+    }
+
+  }
 
 
-  if(
-    near.length === 0
-  ){
+  if(!grouped.size){
 
-    activeList.innerHTML =
-      `<div class="empty">
-        Небезпечних або активних зон поруч немає.
-      </div>`;
-
-    statusIcon.textContent =
-      "✅";
-
-    statusTitle.textContent =
-      "Зон поруч немає";
-
-    statusSub.textContent =
-      "GPS працює. Перевірка подій активна.";
+    list.innerHTML = `
+      <div class="safe">
+        ✅ Небезпечних подій поруч немає
+      </div>
+    `;
 
     return;
 
   }
 
 
-  /*
-    Найважливішу зону показуємо
-    як головний статус.
-  */
-
-  const first =
-    near[0];
-
-
-  statusIcon.textContent =
-    first.c.n.slice(0,2);
-
-  statusTitle.textContent =
-    first.c.n;
-
-  statusSub.textContent =
-    first.usingGeoJSON
-      ? "Ви перебуваєте всередині GeoJSON-зони."
-      : (
-          first.distance != null
-            ? `Відстань до події: ${Math.round(first.distance)} м`
-            : "Ви перебуваєте в активній зоні."
-        );
-
-
-  activeList.innerHTML =
-    "";
-
+  list.innerHTML = "";
 
   for(
-    const item of near
+    const [
+      type,
+      event
+    ]
+    of grouped
   ){
 
-    const o =
-      item.o;
+    const category =
+      CATEGORIES[type];
 
-    const c =
-      item.c;
-
-
-    const div =
+    const item =
       document.createElement("div");
 
+    item.className =
+      "status-item";
 
-    div.className =
-      "active-item";
+    const emoji =
+      document.createElement("div");
 
+    emoji.className =
+      "status-emoji";
 
-    div.style.borderLeftColor =
-      c.c;
+    emoji.textContent =
+      category.emoji;
 
+    const body =
+      document.createElement("div");
 
-    let locationText =
-      "";
+    const name =
+      document.createElement("div");
 
+    name.className =
+      "status-name";
 
-    if(
-      item.usingGeoJSON
-    ){
+    name.textContent =
+      category.name;
 
-      locationText =
-        "📐 GeoJSON-зона";
+    body.appendChild(name);
 
-    }else if(
-      item.distance != null
-    ){
+    if(event.village){
 
-      locationText =
-        `📏 ${Math.round(item.distance)} м`;
+      const village =
+        document.createElement("div");
 
-    }
+      village.className =
+        "status-distance";
 
+      village.textContent =
+        "📍 " +
+        event.village;
 
-    if(
-      o.village
-    ){
-
-      locationText +=
-        ` • ${o.village}`;
-
-    }
-
-
-    if(
-      o.title
-    ){
-
-      div.innerHTML = `
-
-        <div class="active-item-title">
-          ${escapeHTML(c.n)}
-        </div>
-
-        <div class="active-item-sub">
-          ${escapeHTML(o.title)}
-        </div>
-
-        <div class="active-item-sub">
-          ${escapeHTML(locationText)}
-        </div>
-
-      `;
-
-    }else{
-
-      div.innerHTML = `
-
-        <div class="active-item-title">
-          ${escapeHTML(c.n)}
-        </div>
-
-        <div class="active-item-sub">
-          ${escapeHTML(locationText)}
-        </div>
-
-      `;
+      body.appendChild(village);
 
     }
 
+    if(
+      Number.isFinite(event.lat) &&
+      Number.isFinite(event.lng) &&
+      position
+    ){
 
-    activeList.appendChild(
-      div
+      const d =
+        distanceMeters(
+          position.lat,
+          position.lng,
+          event.lat,
+          event.lng
+        );
+
+      if(d > 0){
+
+        const distance =
+          document.createElement("div");
+
+        distance.className =
+          "status-distance";
+
+        distance.textContent =
+          "Приблизно " +
+          formatDistance(d);
+
+        body.appendChild(distance);
+
+      }
+
+    }
+
+    item.appendChild(emoji);
+    item.appendChild(body);
+
+    list.appendChild(item);
+
+  }
+
+}
+
+
+function formatDistance(meters){
+
+  if(meters < 1000){
+
+    return Math.round(meters) + " м";
+
+  }
+
+  return (
+    (meters / 1000)
+      .toFixed(1)
+      .replace(".",",")
+    + " км"
+  );
+
+}
+
+
+/* =========================================================
+   ZONE ENTER
+========================================================= */
+
+function handleZoneEnter(event){
+
+  const type =
+    String(event.type);
+
+  const category =
+    CATEGORIES[type];
+
+  if(!category){
+    return;
+  }
+
+  const cfg =
+    settings.categories[type];
+
+  if(!cfg){
+    return;
+  }
+
+  /*
+    Не спамимо одним і тим самим event.
+  */
+
+  const key =
+    "enter:" +
+    String(event.id);
+
+  if(isRateLimited(key)){
+    return;
+  }
+
+  if(cfg.entry){
+
+    playEventSound(
+      category,
+      cfg.entryVolume,
+      false
+    );
+
+    if(settings.voiceEnabled){
+
+      speak(
+        category.entryText
+      );
+
+    }
+
+    if(cfg.vibration){
+
+      vibrateForType(type);
+
+    }
+
+    showSystemNotification(
+      category.emoji +
+      " " +
+      category.name,
+      category.entryText
     );
 
   }
@@ -2670,137 +2641,233 @@ function renderActive(
 
 
 /* =========================================================
-   API
-   ========================================================= */
+   ZONE EXIT
+========================================================= */
 
-async function get(){
+function handleZoneExit(event){
+
+  const type =
+    String(event.type);
+
+  const category =
+    CATEGORIES[type];
+
+  if(!category){
+    return;
+  }
+
+  const cfg =
+    settings.categories[type];
+
+  if(!cfg || !category.exit){
+    return;
+  }
+
+  const key =
+    "exit:" +
+    String(event.id);
+
+  if(isRateLimited(key)){
+    return;
+  }
+
+  /*
+    "Відбій" не має окремого звуку.
+    Використовуємо звук вихідної категорії,
+    якщо він налаштований.
+  */
+
+  if(cfg.exit){
+
+    playEventSound(
+      category,
+      cfg.exitVolume,
+      true
+    );
+
+    if(settings.voiceEnabled){
+
+      speak(
+        category.exitText
+      );
+
+    }
+
+    if(cfg.vibration){
+
+      vibrateForType(type);
+
+    }
+
+    showSystemNotification(
+      "⚪ Відбій",
+      category.exitText
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   RATE LIMIT
+========================================================= */
+
+function isRateLimited(key){
+
+  const now =
+    Date.now();
+
+  const previous =
+    lastNotificationAt.get(key) || 0;
+
+  /*
+    15 секунд між однаковими повідомленнями.
+  */
+
+  if(now - previous < 15000){
+
+    return true;
+
+  }
+
+  lastNotificationAt.set(
+    key,
+    now
+  );
+
+  return false;
+
+}
+
+
+/* =========================================================
+   VIBRATION
+========================================================= */
+
+function vibrateForType(type){
+
+  if(!("vibrate" in navigator)){
+    return;
+  }
+
+  if(type === "1"){
+
+    navigator.vibrate([
+      500,
+      250,
+      500,
+      250,
+      900
+    ]);
+
+    return;
+
+  }
+
+  if(type === "3"){
+
+    navigator.vibrate([
+      300,
+      150,
+      300
+    ]);
+
+    return;
+
+  }
+
+  navigator.vibrate([
+    250,
+    150,
+    250
+  ]);
+
+}
+
+
+/* =========================================================
+   AUDIO
+========================================================= */
+
+function getAudioPath(category){
+
+  if(!category || !category.sound){
+    return null;
+  }
+
+  return (
+    SOUND_PATH +
+    category.sound
+  );
+
+}
+
+
+function playEventSound(
+  category,
+  volume,
+  isExit
+){
+
+  const path =
+    getAudioPath(category);
+
+  if(!path){
+    return;
+  }
 
   try{
 
-    apiStatus.textContent =
-      "API: оновлення…";
+    if(activeAudio){
 
-    apiDot.style.background =
-      "#eab308";
-
-
-    const r =
-      await fetch(
-        API +
-        "?t=" +
-        Date.now(),
-        {
-          cache:"no-store"
-        }
-      );
-
-
-    if(
-      !r.ok
-    ){
-
-      throw new Error(
-        "HTTP " + r.status
-      );
+      try{
+        activeAudio.pause();
+      }catch(e){}
 
     }
 
+    const audio =
+      new Audio(path);
 
-    const d =
-      await r.json();
+    activeAudio =
+      audio;
 
-
-    /*
-      Apps Script може повернути:
-
-      [...]
-      або
-      {events:[...]}
-    */
-
-    let arr =
-      null;
-
-
-    if(
-      Array.isArray(d)
-    ){
-
-      arr =
-        d;
-
-    }else if(
-      d &&
-      Array.isArray(d.events)
-    ){
-
-      arr =
-        d.events;
-
-    }else if(
-      d &&
-      d.ok === false
-    ){
-
-      throw new Error(
-        d.error ||
-        "API повернув помилку"
+    audio.volume =
+      Math.max(
+        0,
+        Math.min(
+          1,
+          Number(volume) || 0
+        )
       );
 
-    }
+    audio.preload =
+      "auto";
 
+    audio.play()
+      .catch(error => {
 
-    if(
-      !Array.isArray(arr)
-    ){
+        console.warn(
+          "Автовідтворення звуку заблоковано:",
+          error
+        );
 
-      throw new Error(
-        "API повернув невідомий формат"
-      );
+        /*
+          Пробуємо WebAudio
+          як додатковий fallback.
+        */
 
-    }
+        tryUnlockAudio();
 
+      });
 
-    events =
-      arr.filter(
-        x =>
-          x &&
-          typeof x === "object"
-      );
-
-
-    lastApiSuccess =
-      Date.now();
-
-
-    apiStatus.textContent =
-      `API: OK • подій ${events.length}`;
-
-    apiDot.style.background =
-      "#39c56b";
-
-
-    /*
-      Після кожного оновлення API
-      одразу перевіряємо GPS.
-    */
-
-    check();
-
-
-  }catch(e){
+  }catch(error){
 
     console.warn(
-      "API error:",
-      e
+      "Помилка аудіо:",
+      error
     );
-
-
-    apiStatus.textContent =
-      "API: помилка";
-
-    apiDot.style.background =
-      "#f44";
 
   }
 
@@ -2808,56 +2875,122 @@ async function get(){
 
 
 /* =========================================================
-   VOICE
-   ========================================================= */
+   AUDIO UNLOCK
+========================================================= */
 
-let selectedVoice =
-  null;
+function tryUnlockAudio(){
+
+  try{
+
+    if(!audioContext){
+
+      const AudioCtx =
+        window.AudioContext ||
+        window.webkitAudioContext;
+
+      if(!AudioCtx){
+        return;
+      }
+
+      audioContext =
+        new AudioCtx();
+
+    }
+
+    if(audioContext.state === "suspended"){
+
+      audioContext.resume()
+        .catch(()=>{});
+
+    }
+
+  }catch(e){}
+
+}
 
 
-function findMaleUkrainianVoice(){
+/* =========================================================
+   SPEECH
+========================================================= */
 
-  if(
-    !("speechSynthesis" in window)
-  ){
+function loadVoices(){
 
-    return null;
+  if(!("speechSynthesis" in window)){
+
+    updateVoiceStatus(
+      "SpeechSynthesis не підтримується."
+    );
+
+    return;
 
   }
 
-
-  const voices =
+  speechVoices =
     window.speechSynthesis.getVoices();
 
+  selectedVoice =
+    chooseMaleUkrainianVoice(
+      speechVoices
+    );
 
-  if(
-    !voices.length
-  ){
+  if(selectedVoice){
 
-    return null;
+    updateVoiceStatus(
+      "Український голос: " +
+      selectedVoice.name
+    );
+
+  }else{
+
+    const uk =
+      speechVoices.find(
+        v =>
+          String(v.lang)
+            .toLowerCase()
+            .startsWith("uk")
+      );
+
+    if(uk){
+
+      selectedVoice = uk;
+
+      updateVoiceStatus(
+        "Український голос: " +
+        uk.name
+      );
+
+    }else{
+
+      updateVoiceStatus(
+        "Український голос не знайдено. Буде використано голос браузера."
+      );
+
+    }
 
   }
 
+}
 
-  /*
-    Спочатку шукаємо українські голоси.
-  */
+
+function chooseMaleUkrainianVoice(
+  voices
+){
+
+  if(!Array.isArray(voices)){
+    return null;
+  }
 
   const ukrainian =
     voices.filter(
-      v =>
-        String(v.lang || "")
+      voice =>
+        String(voice.lang)
           .toLowerCase()
           .startsWith("uk")
     );
 
-
-  /*
-    У назві голосу часто є:
-    Male, чоловічий,
-    Microsoft Ostap,
-    чоловічий голос тощо.
-  */
+  if(!ukrainian.length){
+    return null;
+  }
 
   const maleWords = [
     "male",
@@ -2865,153 +2998,117 @@ function findMaleUkrainianVoice(){
     "чолов",
     "ostap",
     "mykhailo",
-    "михай",
-    "андр",
+    "mikhail",
     "andriy",
     "andrii",
     "petro",
-    "петро"
+    "oleks",
+    "taras",
+    "dmytro",
+    "volodymyr"
+  ];
+
+  const femaleWords = [
+    "female",
+    "woman",
+    "жін",
+    "olena",
+    "olga",
+    "anna",
+    "kateryna",
+    "natali",
+    "iryna",
+    "maria",
+    "mariya"
   ];
 
 
-  function score(v){
+  let best = null;
+  let bestScore = -Infinity;
+
+
+  for(const voice of ukrainian){
 
     const name =
-      (
-        String(v.name || "") +
-        " " +
-        String(v.voiceURI || "")
+      String(
+        voice.name || ""
       ).toLowerCase();
 
+    let score = 0;
 
-    let score =
-      0;
+    for(const word of maleWords){
 
-
-    if(
-      String(v.lang || "")
-        .toLowerCase()
-        .startsWith("uk")
-    ){
-
-      score += 100;
-
-    }
-
-
-    for(
-      const word of maleWords
-    ){
-
-      if(
-        name.includes(word)
-      ){
-
-        score += 20;
-
+      if(name.includes(word)){
+        score += 10;
       }
 
     }
 
+    for(const word of femaleWords){
+
+      if(name.includes(word)){
+        score -= 15;
+      }
+
+    }
 
     /*
-      Уникаємо очевидних жіночих назв,
-      якщо браузер їх так позначає.
+      Локальні голоси часто звучать
+      природніше за remote.
     */
 
-    const femaleWords = [
-      "female",
-      "woman",
-      "жін",
-      "femalevoice"
-    ];
+    if(voice.localService){
+      score += 2;
+    }
 
+    if(score > bestScore){
 
-    for(
-      const word of femaleWords
-    ){
-
-      if(
-        name.includes(word)
-      ){
-
-        score -= 100;
-
-      }
+      bestScore = score;
+      best = voice;
 
     }
 
-
-    return score;
-
   }
 
 
-  const pool =
-    ukrainian.length
-      ? ukrainian
-      : voices;
+  if(bestScore <= 0){
 
+    /*
+      Стать голосу API не гарантує.
+      Якщо чоловічий не визначився,
+      повертаємо найкращий uk-UA.
+    */
 
-  const sorted =
-    [...pool].sort(
-      (a,b) =>
-        score(b) -
-        score(a)
-    );
+    return null;
 
+  }
 
-  return (
-    sorted[0] ||
-    null
-  );
+  return best;
 
 }
 
 
-function loadVoices(){
+function updateVoiceStatus(text){
 
-  selectedVoice =
-    findMaleUkrainianVoice();
-
-
-  if(
-    selectedVoice
-  ){
-
-    console.log(
-      "Обрано голос:",
-      selectedVoice.name,
-      selectedVoice.lang
+  const el =
+    document.getElementById(
+      "voiceStatus"
     );
+
+  if(el){
+
+    el.textContent =
+      text;
 
   }
 
 }
 
 
-if(
-  "speechSynthesis" in window
-){
-
-  window.speechSynthesis.onvoiceschanged =
-    loadVoices;
-
-  loadVoices();
-
-}
-
-
-/* =========================================================
-   SPEAK
-   ========================================================= */
-
-function speak(
-  text,
-  volume=80
-){
+function speak(text){
 
   if(
+    !settings.voiceEnabled ||
     !text ||
     !("speechSynthesis" in window)
   ){
@@ -3020,51 +3117,17 @@ function speak(
 
   }
 
-
   try{
 
     window.speechSynthesis.cancel();
-
 
     const utterance =
       new SpeechSynthesisUtterance(
         text
       );
 
-
-    if(
-      !selectedVoice
-    ){
-
-      selectedVoice =
-        findMaleUkrainianVoice();
-
-    }
-
-
-    if(
-      selectedVoice
-    ){
-
-      utterance.voice =
-        selectedVoice;
-
-      utterance.lang =
-        selectedVoice.lang ||
-        "uk-UA";
-
-    }else{
-
-      utterance.lang =
-        "uk-UA";
-
-    }
-
-
-    /*
-      Трохи нижча швидкість,
-      щоб попередження було чітким.
-    */
+    utterance.lang =
+      "uk-UA";
 
     utterance.rate =
       0.92;
@@ -3073,24 +3136,24 @@ function speak(
       0.85;
 
     utterance.volume =
-      Math.max(
-        0,
-        Math.min(
-          1,
-          Number(volume) / 100
-        )
-      );
+      1;
 
+    if(selectedVoice){
+
+      utterance.voice =
+        selectedVoice;
+
+    }
 
     window.speechSynthesis.speak(
       utterance
     );
 
-  }catch(e){
+  }catch(error){
 
     console.warn(
-      "Voice error:",
-      e
+      "Помилка голосу:",
+      error
     );
 
   }
@@ -3099,79 +3162,62 @@ function speak(
 
 
 /* =========================================================
-   SOUND PLAYER
-   ========================================================= */
+   SYSTEM NOTIFICATIONS
+========================================================= */
 
-function playSound(
-  soundType,
-  volume=80
-){
-
-  const src =
-    SOUND_FILES[soundType];
-
+async function requestNotificationPermission(){
 
   if(
-    !src ||
-    Number(volume) <= 0
+    !("Notification" in window)
   ){
+
+    showToast(
+      "Цей браузер не підтримує системні повідомлення."
+    );
 
     return false;
 
   }
 
-
   try{
 
-    const audio =
-      new Audio(src);
+    const permission =
+      await Notification.requestPermission();
 
+    if(permission === "granted"){
 
-    audio.volume =
-      Math.max(
-        0,
-        Math.min(
-          1,
-          Number(volume) / 100
-        )
+      settings.notificationsEnabled =
+        true;
+
+      saveSettings();
+
+      syncSettingsUI();
+
+      showToast(
+        "🔔 Повідомлення дозволено."
       );
 
-
-    audio.preload =
-      "auto";
-
-
-    const promise =
-      audio.play();
-
-
-    if(
-      promise &&
-      typeof promise.catch === "function"
-    ){
-
-      promise.catch(
-        e => {
-
-          console.warn(
-            "Не вдалося відтворити звук:",
-            src,
-            e
-          );
-
-        }
-      );
+      return true;
 
     }
 
+    settings.notificationsEnabled =
+      false;
 
-    return true;
+    saveSettings();
 
-  }catch(e){
+    syncSettingsUI();
+
+    showToast(
+      "Повідомлення не дозволені."
+    );
+
+    return false;
+
+  }catch(error){
 
     console.warn(
-      "Sound error:",
-      e
+      error
     );
 
     return false;
@@ -3181,188 +3227,18 @@ function playSound(
 }
 
 
-/* =========================================================
-   FALLBACK SOUND
-   ========================================================= */
-
-let audioContext =
-  null;
-
-
-function fallbackBeep(
-  volume=80
+function showSystemNotification(
+  title,
+  body
 ){
 
-  try{
-
-    const AC =
-      window.AudioContext ||
-      window.webkitAudioContext;
-
-
-    if(!AC){
-
-      return;
-
-    }
-
-
-    if(
-      !audioContext
-    ){
-
-      audioContext =
-        new AC();
-
-    }
-
-
-    if(
-      audioContext.state ===
-      "suspended"
-    ){
-
-      audioContext.resume();
-
-    }
-
-
-    const osc =
-      audioContext.createOscillator();
-
-    const gain =
-      audioContext.createGain();
-
-
-    osc.type =
-      "sine";
-
-    osc.frequency.value =
-      740;
-
-
-    gain.gain.value =
-      Math.max(
-        0.01,
-        Math.min(
-          0.25,
-          Number(volume) / 400
-        )
-      );
-
-
-    osc.connect(
-      gain
-    );
-
-    gain.connect(
-      audioContext.destination
-    );
-
-
-    osc.start();
-
-
-    osc.stop(
-      audioContext.currentTime +
-      0.35
-    );
-
-  }catch(e){
-
-    console.warn(
-      "Fallback sound error:",
-      e
-    );
-
-  }
-
-}
-
-
-/* =========================================================
-   PLAY EVENT SOUND
-   ========================================================= */
-
-function playEventSound(
-  category,
-  type,
-  volume
-){
-
-  /*
-    Спочатку намагаємося використати
-    власний файл із Sound/.
-  */
-
-  const played =
-    playSound(
-      category.s,
-      volume
-    );
-
-
-  /*
-    Якщо файл ще не завантажений,
-    робимо простий fallback.
-  */
-
   if(
-    !played
-  ){
-
-    fallbackBeep(
-      volume
-    );
-
-  }
-
-}
-
-
-/* =========================================================
-   VIBRATION
-   ========================================================= */
-
-function vibrate(){
-
-  if(
-    !navigator.vibrate
+    !settings.notificationsEnabled
   ){
 
     return;
 
   }
-
-
-  try{
-
-    navigator.vibrate([
-      300,
-      150,
-      300
-    ]);
-
-  }catch(e){
-
-    console.warn(
-      "Vibration:",
-      e
-    );
-
-  }
-
-}
-
-
-/* =========================================================
-   SYSTEM NOTIFICATION
-   ========================================================= */
-
-function systemNotification(
-  title,
-  body
-){
 
   if(
     !("Notification" in window)
@@ -3371,7 +3247,6 @@ function systemNotification(
     return;
 
   }
-
 
   if(
     Notification.permission !==
@@ -3382,7 +3257,6 @@ function systemNotification(
 
   }
 
-
   try{
 
     new Notification(
@@ -3391,15 +3265,15 @@ function systemNotification(
         body,
         icon:"./icons/icon-192.png",
         badge:"./icons/icon-192.png",
-        tag:"mapadoua-event"
+        tag:"mapa-podiy-ua"
       }
     );
 
-  }catch(e){
+  }catch(error){
 
     console.warn(
       "Notification error:",
-      e
+      error
     );
 
   }
@@ -3408,460 +3282,951 @@ function systemNotification(
 
 
 /* =========================================================
-   FIRE EVENT
-   ========================================================= */
+   SETTINGS UI
+========================================================= */
 
-function fire(
-  o,
-  mode
+function buildCategorySettings(){
+
+  const container =
+    document.getElementById(
+      "categorySettings"
+    );
+
+  if(!container){
+    return;
+  }
+
+  /*
+    Зберігаємо заголовок,
+    перезаписуємо тільки список.
+  */
+
+  container.innerHTML = `
+    <div class="settings-title">
+      Типи подій
+    </div>
+
+    <div class="settings-description">
+      Для кожного типу можна окремо ввімкнути вхід у зону, вихід із зони, звук та вібрацію.
+    </div>
+  `;
+
+
+  for(
+    const type
+    of Object.keys(CATEGORIES)
+  ){
+
+    const category =
+      CATEGORIES[type];
+
+    const cfg =
+      settings.categories[type];
+
+    if(!cfg){
+      continue;
+    }
+
+    const wrapper =
+      document.createElement("div");
+
+    wrapper.className =
+      "category-setting";
+
+
+    const header =
+      document.createElement("div");
+
+    header.className =
+      "category-header";
+
+
+    const name =
+      document.createElement("div");
+
+    name.className =
+      "category-name";
+
+    name.textContent =
+      category.emoji +
+      " " +
+      category.name;
+
+
+    const entrySwitch =
+      createCheckbox(
+        cfg.entry,
+        checked => {
+
+          cfg.entry =
+            checked;
+
+          saveSettings();
+
+        }
+      );
+
+
+    header.appendChild(name);
+    header.appendChild(
+      createSwitchLabel(
+        entrySwitch
+      )
+    );
+
+
+    wrapper.appendChild(header);
+
+
+    const controls =
+      document.createElement("div");
+
+    controls.className =
+      "category-controls";
+
+
+    /*
+      Гучність входу
+    */
+
+    const entryVolume =
+      document.createElement("div");
+
+    entryVolume.className =
+      "control-box";
+
+    entryVolume.innerHTML = `
+      <label>🔊 Гучність входу</label>
+      <select>
+        <option value="0.25">25%</option>
+        <option value="0.5">50%</option>
+        <option value="0.75">75%</option>
+        <option value="1">100%</option>
+      </select>
+    `;
+
+    const entrySelect =
+      entryVolume.querySelector(
+        "select"
+      );
+
+    entrySelect.value =
+      String(cfg.entryVolume);
+
+    entrySelect.addEventListener(
+      "change",
+      () => {
+
+        cfg.entryVolume =
+          Number(entrySelect.value);
+
+        saveSettings();
+
+      }
+    );
+
+
+    /*
+      Гучність виходу
+    */
+
+    const exitVolume =
+      document.createElement("div");
+
+    exitVolume.className =
+      "control-box";
+
+    exitVolume.innerHTML = `
+      <label>⚪ Гучність відбою</label>
+      <select>
+        <option value="0.25">25%</option>
+        <option value="0.5">50%</option>
+        <option value="0.75">75%</option>
+        <option value="1">100%</option>
+      </select>
+    `;
+
+    const exitSelect =
+      exitVolume.querySelector(
+        "select"
+      );
+
+    exitSelect.value =
+      String(cfg.exitVolume);
+
+    exitSelect.addEventListener(
+      "change",
+      () => {
+
+        cfg.exitVolume =
+          Number(exitSelect.value);
+
+        saveSettings();
+
+      }
+    );
+
+
+    controls.appendChild(
+      entryVolume
+    );
+
+    controls.appendChild(
+      exitVolume
+    );
+
+    wrapper.appendChild(
+      controls
+    );
+
+
+    /*
+      Вихід доступний
+      тільки для категорій,
+      де є exit.
+    */
+
+    if(category.exit){
+
+      const exitRow =
+        document.createElement("div");
+
+      exitRow.className =
+        "small-toggle";
+
+      const exitText =
+        document.createElement("span");
+
+      exitText.textContent =
+        "⚪ Відбій / вихід із зони";
+
+
+      const exitCheck =
+        createCheckbox(
+          cfg.exit,
+          checked => {
+
+            cfg.exit =
+              checked;
+
+            saveSettings();
+
+          }
+        );
+
+      exitRow.appendChild(
+        exitText
+      );
+
+      exitRow.appendChild(
+        exitCheck
+      );
+
+      wrapper.appendChild(
+        exitRow
+      );
+
+    }
+
+
+    /*
+      Вібрація
+    */
+
+    const vibrationRow =
+      document.createElement("div");
+
+    vibrationRow.className =
+      "small-toggle";
+
+    const vibrationText =
+      document.createElement("span");
+
+    vibrationText.textContent =
+      "📳 Вібрація";
+
+
+    const vibrationCheck =
+      createCheckbox(
+        cfg.vibration,
+        checked => {
+
+          cfg.vibration =
+            checked;
+
+          saveSettings();
+
+        }
+      );
+
+    vibrationRow.appendChild(
+      vibrationText
+    );
+
+    vibrationRow.appendChild(
+      vibrationCheck
+    );
+
+    wrapper.appendChild(
+      vibrationRow
+    );
+
+
+    /*
+      Тест звуку
+    */
+
+    const testButton =
+      document.createElement("button");
+
+    testButton.type =
+      "button";
+
+    testButton.textContent =
+      "🔊 Тест звуку";
+
+    testButton.style.cssText = `
+      width:100%;
+      margin-top:11px;
+      padding:10px;
+      border-radius:12px;
+      border:1px solid #334155;
+      background:#1e293b;
+      color:#f8fafc;
+      font-weight:700;
+    `;
+
+    testButton.addEventListener(
+      "click",
+      () => {
+
+        playEventSound(
+          category,
+          cfg.entryVolume,
+          false
+        );
+
+        if(settings.voiceEnabled){
+
+          speak(
+            category.entryText
+          );
+
+        }
+
+      }
+    );
+
+    wrapper.appendChild(
+      testButton
+    );
+
+
+    container.appendChild(
+      wrapper
+    );
+
+  }
+
+}
+
+
+function createCheckbox(
+  checked,
+  callback
 ){
 
-  const id =
-    String(
-      o.type ?? ""
-    ).trim();
+  const input =
+    document.createElement(
+      "input"
+    );
+
+  input.type =
+    "checkbox";
+
+  input.className =
+    "checkbox";
+
+  input.checked =
+    !!checked;
+
+  input.addEventListener(
+    "change",
+    () => callback(
+      input.checked
+    )
+  );
+
+  return input;
+
+}
 
 
-  const c =
-    CAT[id];
+function createSwitchLabel(input){
 
+  const label =
+    document.createElement(
+      "label"
+    );
 
-  if(
-    !c
-  ){
+  label.className =
+    "switch";
 
-    return;
+  const slider =
+    document.createElement(
+      "span"
+    );
 
-  }
-
-
-  const settings =
-    cfg[id];
-
-
-  if(
-    !settings
-  ){
-
-    return;
-
-  }
-
+  slider.className =
+    "slider";
 
   /*
-    EXIT.
+    input вже створений,
+    тому переносимо його в switch.
   */
 
-  if(
-    mode === "exit"
-  ){
+  input.className = "";
 
-    if(
-      !c.xok ||
-      !settings.exit ||
-      !c.x
-    ){
+  input.style.opacity =
+    "0";
 
-      return;
+  input.style.width =
+    "0";
 
-    }
+  input.style.height =
+    "0";
 
+  label.appendChild(input);
+  label.appendChild(slider);
 
-    const volume =
-      Number(
-        settings.exitVolume
-      );
+  return label;
+
+}
 
 
-    playEventSound(
-      c,
-      "exit",
-      volume
+function syncSettingsUI(){
+
+  const gpsToggle =
+    document.getElementById(
+      "gpsToggle"
+    );
+
+  const notificationToggle =
+    document.getElementById(
+      "notificationToggle"
+    );
+
+  const voiceToggle =
+    document.getElementById(
+      "voiceToggle"
     );
 
 
-    speak(
-      c.x,
-      volume
-    );
+  if(gpsToggle){
 
-
-    if(
-      settings.vibrate
-    ){
-
-      vibrate();
-
-    }
-
-
-    systemNotification(
-      c.n,
-      c.x
-    );
-
-
-    toast(
-      "↩️ Вихід із зони",
-      c.x
-    );
-
-
-    return;
+    gpsToggle.checked =
+      settings.gpsEnabled;
 
   }
 
+  if(notificationToggle){
 
-  /*
-    ENTRY.
-  */
-
-  if(
-    !settings.entry
-  ){
-
-    return;
+    notificationToggle.checked =
+      settings.notificationsEnabled;
 
   }
 
+  if(voiceToggle){
 
-  const volume =
-    Number(
-      settings.volume
-    );
-
-
-  playEventSound(
-    c,
-    "entry",
-    volume
-  );
-
-
-  speak(
-    c.e,
-    volume
-  );
-
-
-  if(
-    settings.vibrate
-  ){
-
-    vibrate();
+    voiceToggle.checked =
+      settings.voiceEnabled;
 
   }
-
-
-  systemNotification(
-    c.n,
-    c.e
-  );
-
-
-  toast(
-    c.n,
-    c.e
-  );
 
 }
 
 
 /* =========================================================
-   EVENTS
-   ========================================================= */
+   GPS TOGGLE
+========================================================= */
 
-gps.addEventListener(
-  "change",
-  () => {
+document
+  .getElementById("gpsToggle")
+  .addEventListener(
+    "change",
+    async event => {
 
-    if(
-      gps.checked
-    ){
+      const enabled =
+        event.target.checked;
 
-      start();
+      settings.gpsEnabled =
+        enabled;
 
-    }else{
+      saveSettings();
 
-      stop();
+      if(enabled){
 
-    }
+        startGPS();
 
-  }
-);
+        try{
 
+          await navigator.geolocation.getCurrentPosition(
+            () => {},
+            () => {},
+            {
+              enableHighAccuracy:true,
+              timeout:10000
+            }
+          );
 
-gpsStart.addEventListener(
-  "click",
-  () => {
+        }catch(e){}
 
-    if(
-      watch === null
-    ){
+      }else{
 
-      start();
-
-    }else{
-
-      stop();
-
-    }
-
-  }
-);
-
-
-notif.addEventListener(
-  "change",
-  () => {
-
-    if(
-      notif.checked
-    ){
-
-      enableNotifications();
-
-    }
-
-  }
-);
-
-
-$("testSound").addEventListener(
-  "click",
-  () => {
-
-    /*
-      Тестуємо alarm.mp3.
-    */
-
-    const played =
-      playSound(
-        "alarm",
-        80
-      );
-
-
-    if(
-      !played
-    ){
-
-      fallbackBeep(
-        80
-      );
-
-    }
-
-
-    toast(
-      "🔊 Тест звуку",
-      "Перевіряється Sound/alarm.mp3"
-    );
-
-  }
-);
-
-
-$("testVoice").addEventListener(
-  "click",
-  () => {
-
-    speak(
-      "Увага! Це тест чоловічого голосу МапаПодійUA.",
-      100
-    );
-
-
-    toast(
-      "👨 Тест голосу",
-      selectedVoice
-        ? `Голос: ${selectedVoice.name}`
-        : "Український чоловічий голос не знайдений. Використовується голос браузера."
-    );
-
-  }
-);
-
-
-$("testNotification").addEventListener(
-  "click",
-  async () => {
-
-    if(
-      !("Notification" in window)
-    ){
-
-      toast(
-        "🔔 Недоступно",
-        "Цей браузер не підтримує системні сповіщення."
-      );
-
-      return;
-
-    }
-
-
-    if(
-      Notification.permission !==
-      "granted"
-    ){
-
-      await enableNotifications();
-
-    }
-
-
-    systemNotification(
-      "МапаПодійUA",
-      "Це тестове сповіщення."
-    );
-
-
-    speak(
-      "Це тестове сповіщення МапаПодійUA.",
-      80
-    );
-
-
-    playSound(
-      "simple",
-      80
-    );
-
-  }
-);
-
-
-/* =========================================================
-   INITIALIZATION
-   ========================================================= */
-
-async function init(){
-
-  renderCategories();
-
-  await updateNotificationPermission();
-
-
-  /*
-    Відновлюємо GPS,
-    якщо користувач раніше його вмикав.
-  */
-
-  if(
-    cfg.gps
-  ){
-
-    /*
-      Не стартуємо GPS автоматично
-      без жесту користувача в деяких браузерах.
-
-      Але якщо браузер дозволяє —
-      запускаємо.
-    */
-
-    try{
-
-      start();
-
-    }catch(e){
-
-      console.warn(
-        "Auto GPS:",
-        e
-      );
-
-    }
-
-  }
-
-
-  /*
-    Перше завантаження подій.
-  */
-
-  await get();
-
-
-  /*
-    API оновлюємо кожні 10 секунд.
-  */
-
-  setInterval(
-    get,
-    10000
-  );
-
-
-  /*
-    Додаткова перевірка GPS
-    кожні 5 секунд.
-
-    Це важливо:
-    якщо подія змінила GeoJSON,
-    ми можемо перевірити актуальний
-    стан без очікування нового GPS.
-  */
-
-  setInterval(
-    () => {
-
-      if(pos){
-
-        check();
+        stopGPS();
 
       }
 
-    },
-    5000
+    }
+  );
+
+
+/* =========================================================
+   NOTIFICATION TOGGLE
+========================================================= */
+
+document
+  .getElementById("notificationToggle")
+  .addEventListener(
+    "change",
+    async event => {
+
+      if(event.target.checked){
+
+        const ok =
+          await requestNotificationPermission();
+
+        if(!ok){
+
+          event.target.checked =
+            false;
+
+        }
+
+      }else{
+
+        settings.notificationsEnabled =
+          false;
+
+        saveSettings();
+
+      }
+
+    }
+  );
+
+
+/* =========================================================
+   VOICE TOGGLE
+========================================================= */
+
+document
+  .getElementById("voiceToggle")
+  .addEventListener(
+    "change",
+    event => {
+
+      settings.voiceEnabled =
+        event.target.checked;
+
+      saveSettings();
+
+      if(
+        settings.voiceEnabled
+      ){
+
+        tryUnlockAudio();
+
+        speak(
+          "Голосові сповіщення увімкнено"
+        );
+
+      }else{
+
+        if(
+          "speechSynthesis" in window
+        ){
+
+          window.speechSynthesis.cancel();
+
+        }
+
+      }
+
+    }
+  );
+
+
+/* =========================================================
+   PERMISSION MODAL
+========================================================= */
+
+function showGPSModal(){
+
+  const modal =
+    document.getElementById(
+      "permissionModal"
+    );
+
+  if(modal){
+
+    modal.classList.add("show");
+
+  }
+
+}
+
+
+function hideGPSModal(){
+
+  const modal =
+    document.getElementById(
+      "permissionModal"
+    );
+
+  if(modal){
+
+    modal.classList.remove("show");
+
+  }
+
+}
+
+
+document
+  .getElementById("modalCancel")
+  .addEventListener(
+    "click",
+    hideGPSModal
+  );
+
+
+document
+  .getElementById("modalOk")
+  .addEventListener(
+    "click",
+    async () => {
+
+      hideGPSModal();
+
+      settings.gpsEnabled =
+        true;
+
+      saveSettings();
+
+      syncSettingsUI();
+
+      startGPS();
+
+      try{
+
+        await navigator.geolocation.getCurrentPosition(
+          onPosition,
+          onPositionError,
+          {
+            enableHighAccuracy:true,
+            timeout:15000,
+            maximumAge:0
+          }
+        );
+
+      }catch(e){}
+
+    }
+  );
+
+
+/* =========================================================
+   USER INTERACTION AUDIO UNLOCK
+========================================================= */
+
+document.addEventListener(
+  "pointerdown",
+  () => {
+
+    tryUnlockAudio();
+
+  },
+  {
+    once:false,
+    passive:true
+  }
+);
+
+
+/* =========================================================
+   SERVICE WORKER
+========================================================= */
+
+if(
+  "serviceWorker" in navigator
+){
+
+  window.addEventListener(
+    "load",
+    () => {
+
+      navigator.serviceWorker
+        .register("./sw.js")
+        .then(
+          registration => {
+
+            console.log(
+              "Service Worker registered:",
+              registration.scope
+            );
+
+          }
+        )
+        .catch(
+          error => {
+
+            console.warn(
+              "Service Worker error:",
+              error
+            );
+
+          }
+        );
+
+    }
   );
 
 }
 
 
-init();
+/* =========================================================
+   PAGE VISIBILITY
+========================================================= */
+
+document.addEventListener(
+  "visibilitychange",
+  () => {
+
+    /*
+      GPS watchPosition продовжує працювати,
+      поки браузер/ОС дозволяють фонову роботу.
+
+      Тут нічого не зупиняємо навмисно.
+    */
+
+    if(
+      document.visibilityState === "visible"
+    ){
+
+      fetchEvents();
+
+    }
+
+  }
+);
 
 
 /* =========================================================
-   DEBUG
-   ========================================================= */
+   MAP IFRAME MESSAGES
+========================================================= */
 
-window.MapDoUA =
-  {
+window.addEventListener(
+  "message",
+  event => {
 
-    get position(){
+    if(!event.data){
+      return;
+    }
 
-      return pos;
+    if(
+      event.data.type ===
+      "MAP_REQUEST_GPS"
+    ){
 
-    },
+      if(position){
 
-    get events(){
+        const frame =
+          document.getElementById(
+            "mapFrame"
+          );
 
-      return events;
+        if(
+          frame &&
+          frame.contentWindow
+        ){
 
-    },
+          frame.contentWindow.postMessage(
+            {
+              type:"MAP_GPS_POSITION",
+              lat:position.lat,
+              lng:position.lng
+            },
+            "*"
+          );
 
-    get inside(){
+        }
 
-      return inside;
+      }
 
-    },
+    }
 
-    check,
+  }
+);
 
-    get,
 
-    start,
+/* =========================================================
+   PERIODIC API REFRESH
+========================================================= */
 
-    stop,
+function startApiTimer(){
 
-    speak,
+  if(apiTimer){
+    clearInterval(apiTimer);
+  }
 
-    playSound,
+  /*
+    Google Sheets API оновлюємо
+    кожні 10 секунд.
+  */
 
-    geoJSONContains
+  apiTimer =
+    setInterval(
+      fetchEvents,
+      10000
+    );
 
-  };
+}
+
+
+/* =========================================================
+   INITIALIZE
+========================================================= */
+
+function initialize(){
+
+  buildCategorySettings();
+
+  syncSettingsUI();
+
+  loadVoices();
+
+  /*
+    Chrome/Android може завантажити голоси
+    асинхронно.
+  */
+
+  if(
+    "speechSynthesis" in window
+  ){
+
+    window.speechSynthesis
+      .addEventListener(
+        "voiceschanged",
+        loadVoices
+      );
+
+  }
+
+
+  /*
+    Початковий GPS.
+  */
+
+  if(settings.gpsEnabled){
+
+    startGPS();
+
+  }
+
+
+  /*
+    API.
+  */
+
+  fetchEvents();
+
+  startApiTimer();
+
+
+  /*
+    Якщо GPS не дозволений,
+    показуємо нормальний статус,
+    а не помилку.
+  */
+
+  if(
+    settings.gpsEnabled &&
+    "geolocation" in navigator
+  ){
+
+    setTimeout(
+      () => {
+
+        if(!position){
+
+          updateGPSStatus(
+            "Очікування дозволу GPS...",
+            "wait"
+          );
+
+        }
+
+      },
+      2500
+    );
+
+  }
+
+
+  /*
+    Перша вкладка.
+  */
+
+  switchScreen("home");
+
+}
+
+
+initialize();
+
+
+/* =========================================================
+   GLOBAL DEBUG
+========================================================= */
+
+window.MapaPodiyUA = {
+
+  get events(){
+    return events;
+  },
+
+  get position(){
+    return position;
+  },
+
+  get settings(){
+    return settings;
+  },
+
+  refresh:
+    fetchEvents,
+
+  check:
+    checkZones,
+
+  speak,
+
+  playEventSound,
+
+  switchScreen
+
+};
 
 </script>
 
