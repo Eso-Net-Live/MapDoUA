@@ -2,23 +2,27 @@
 <html lang="uk">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <title>МапаПодійUA — карта</title>
-
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover"
   >
 
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css"
+  <meta name="theme-color" content="#111111">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta
+    name="apple-mobile-web-app-status-bar-style"
+    content="black-translucent"
   >
+
+  <title>МапаПодійUA — Beta test</title>
+
+  <link rel="manifest" href="./manifest.json">
 
   <style>
     * {
       box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
     }
 
     html,
@@ -27,1396 +31,2175 @@
       padding: 0;
       width: 100%;
       height: 100%;
+      background: #111;
+      color: #fff;
+      font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+    }
+
+    body {
       overflow: hidden;
-      font-family: Arial, sans-serif;
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    #app {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      overflow: hidden;
       background: #111;
     }
 
-    #map {
-      width: 100%;
-      height: 100%;
-    }
-
-    /* =========================
-       PANEL
-    ========================= */
-
-    #panel {
+    .screen {
       position: absolute;
-      z-index: 1000;
-      top: 10px;
-      left: 10px;
-
-      width: 300px;
-      max-width: calc(100vw - 20px);
-
-      max-height: calc(100vh - 20px);
+      inset: 0;
+      padding:
+        calc(env(safe-area-inset-top) + 16px)
+        16px
+        calc(78px + env(safe-area-inset-bottom))
+        16px;
       overflow-y: auto;
-
-      background: rgba(20, 20, 20, 0.94);
-      color: white;
-
-      border-radius: 12px;
-      padding: 12px;
-
-      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45);
-
-      backdrop-filter: blur(8px);
-
-      transition:
-        transform 0.25s ease,
-        opacity 0.25s ease;
+      display: none;
+      background: #111;
     }
 
-    #panel h2 {
-      margin: 0 0 10px 0;
-      font-size: 18px;
+    .screen.active {
+      display: block;
     }
 
-    .category {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-
-      padding: 7px 4px;
-      border-radius: 7px;
-
-      cursor: pointer;
-      user-select: none;
+    .header {
+      margin-bottom: 18px;
     }
 
-    .category:hover {
-      background: rgba(255, 255, 255, 0.08);
+    .header h1 {
+      margin: 0 0 6px;
+      font-size: 27px;
+      line-height: 1.15;
     }
 
-    .category input {
-      width: 18px;
-      height: 18px;
-      cursor: pointer;
-    }
-
-    .category-name {
-      flex: 1;
+    .header p {
+      margin: 0;
+      color: #aaa;
       font-size: 14px;
     }
 
-    .category-count {
-      min-width: 22px;
-      padding: 2px 6px;
-
-      border-radius: 10px;
-
-      background: rgba(255, 255, 255, 0.12);
-      color: #ddd;
-
-      font-size: 11px;
-      text-align: center;
+    .card {
+      background: #1c1c1c;
+      border: 1px solid #303030;
+      border-radius: 18px;
+      padding: 16px;
+      margin-bottom: 14px;
     }
 
-    #status {
-      margin-top: 9px;
-      padding-top: 8px;
+    .card-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
 
-      border-top: 1px solid rgba(255, 255, 255, 0.12);
+    .status-card {
+      border-radius: 18px;
+      padding: 17px;
+      margin-bottom: 12px;
+      border: 1px solid #333;
+      background: #191919;
+    }
 
-      font-size: 11px;
-      color: #aaa;
+    .status-card.danger {
+      border-color: #a80000;
+      background: #280c0c;
+    }
+
+    .status-card.warning {
+      border-color: #b56a00;
+      background: #281b0a;
+    }
+
+    .status-card.safe {
+      border-color: #286b39;
+      background: #102116;
+    }
+
+    .status-title {
+      font-size: 17px;
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+
+    .status-description {
+      color: #bbb;
+      font-size: 14px;
       line-height: 1.4;
     }
 
-    #alertBadge {
-      display: none;
-
-      margin-top: 8px;
-      padding: 8px;
-
-      border-radius: 8px;
-
-      background: rgba(255, 0, 0, 0.22);
-      border: 1px solid rgba(255, 60, 60, 0.6);
-
-      color: #ff7777;
-
-      font-weight: bold;
-      font-size: 13px;
-
+    .empty-status {
       text-align: center;
-
-      animation: alertPulse 1.5s infinite;
+      padding: 28px 15px;
+      color: #bdbdbd;
+      line-height: 1.5;
     }
 
-    @keyframes alertPulse {
-      0% {
-        opacity: 1;
-      }
-
-      50% {
-        opacity: 0.55;
-      }
-
-      100% {
-        opacity: 1;
-      }
+    .location-status {
+      font-size: 14px;
+      color: #aaa;
+      margin-top: 10px;
     }
 
-    /* =========================
-       PANEL BUTTON
-    ========================= */
+    .location-status.ok {
+      color: #55d879;
+    }
 
-    #panelToggle {
+    .location-status.error {
+      color: #ff7070;
+    }
+
+    .map-wrapper {
       position: absolute;
-      z-index: 1100;
-
-      top: 10px;
-      left: 10px;
-
-      width: 46px;
-      height: 46px;
-
-      border: none;
-      border-radius: 12px;
-
-      background: rgba(20, 20, 20, 0.94);
-      color: white;
-
-      font-size: 24px;
-      line-height: 46px;
-
-      text-align: center;
-
-      cursor: pointer;
-
-      box-shadow:
-        0 4px 15px rgba(0, 0, 0, 0.45);
-
-      backdrop-filter: blur(8px);
-
-      display: none;
+      inset: 0;
+      padding-bottom: calc(65px + env(safe-area-inset-bottom));
+      background: #111;
     }
 
-    #panelToggle:hover {
-      background: rgba(45, 45, 45, 0.96);
+    .map-frame {
+      width: 100%;
+      height: 100%;
+      border: 0;
+      display: block;
+      background: #111;
     }
 
-    #panelToggle:active {
-      transform: scale(0.95);
+    .settings-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 0;
+      border-bottom: 1px solid #303030;
     }
 
-    /* =========================
-       CLOSE BUTTON
-    ========================= */
+    .settings-row:last-child {
+      border-bottom: 0;
+    }
 
-    #panelClose {
-      display: none;
+    .settings-label {
+      flex: 1;
+      min-width: 0;
+    }
 
+    .settings-label strong {
+      display: block;
+      font-size: 15px;
+      margin-bottom: 3px;
+    }
+
+    .settings-label span {
+      display: block;
+      color: #999;
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .switch {
+      position: relative;
+      width: 48px;
+      height: 28px;
+      flex: 0 0 auto;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
       position: absolute;
-
-      top: 8px;
-      right: 8px;
-
-      width: 34px;
-      height: 34px;
-
-      border: none;
-      border-radius: 8px;
-
-      background: rgba(255, 255, 255, 0.08);
-      color: white;
-
-      font-size: 20px;
-
-      cursor: pointer;
     }
 
-    #panelClose:hover {
-      background: rgba(255, 255, 255, 0.16);
-    }
-
-    /* =========================
-       NEPTUN ATTRIBUTION
-    ========================= */
-
-    #neptunAttribution {
+    .slider {
       position: absolute;
-      z-index: 1001;
-
-      right: 10px;
-      bottom: 10px;
-
-      background: rgba(0, 0, 0, 0.7);
-      color: white;
-
-      padding: 5px 8px;
-      border-radius: 6px;
-
-      font-size: 11px;
+      inset: 0;
+      background: #444;
+      border-radius: 30px;
+      transition: .2s;
     }
 
-    #neptunAttribution a {
-      color: #fff;
+    .slider::before {
+      content: "";
+      position: absolute;
+      width: 22px;
+      height: 22px;
+      left: 3px;
+      top: 3px;
+      background: white;
+      border-radius: 50%;
+      transition: .2s;
+    }
+
+    .switch input:checked + .slider {
+      background: #26a84a;
+    }
+
+    .switch input:checked + .slider::before {
+      transform: translateX(20px);
+    }
+
+    .category-setting {
+      padding: 16px 0;
+      border-bottom: 1px solid #303030;
+    }
+
+    .category-setting:last-child {
+      border-bottom: 0;
+    }
+
+    .category-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .category-name {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .subsetting {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      padding: 7px 0;
+      color: #ccc;
+      font-size: 14px;
+    }
+
+    .volume-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .volume-row input[type="range"] {
+      flex: 1;
+    }
+
+    .volume-value {
+      width: 38px;
+      text-align: right;
+      color: #aaa;
+      font-size: 12px;
+    }
+
+    .info-link {
+      display: block;
+      color: #7eb6ff;
       text-decoration: none;
+      padding: 10px 0;
+      word-break: break-word;
     }
 
-    #neptunAttribution a:hover {
+    .info-link:hover {
       text-decoration: underline;
     }
 
-    /* =========================
-       MARKERS
-    ========================= */
+    .community {
+      margin-top: 22px;
+      padding: 16px;
+      border-radius: 16px;
+      background: #191919;
+      border: 1px solid #303030;
+      color: #bbb;
+      font-size: 14px;
+      line-height: 1.5;
+      text-align: center;
+    }
 
-    .emoji-marker {
+    .author {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .version {
+      margin-top: 15px;
+      text-align: center;
+      color: #666;
+      font-size: 11px;
+    }
+
+    .bottom-nav {
+      position: fixed;
+      z-index: 10000;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: calc(64px + env(safe-area-inset-bottom));
+      padding-bottom: env(safe-area-inset-bottom);
       display: flex;
+      background: rgba(18, 18, 18, .97);
+      border-top: 1px solid #333;
+      backdrop-filter: blur(12px);
+    }
+
+    .nav-btn {
+      flex: 1;
+      border: 0;
+      background: transparent;
+      color: #777;
+      display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-
-      width: 34px;
-      height: 34px;
-
-      border-radius: 50%;
-
-      background: rgba(0, 0, 0, 0.78);
-      border: 2px solid white;
-
-      font-size: 20px;
-
-      box-shadow:
-        0 2px 8px rgba(0, 0, 0, 0.5);
+      gap: 3px;
+      font-size: 11px;
     }
 
-    .neptun-threat-marker {
+    .nav-btn .icon {
+      font-size: 23px;
+      line-height: 1;
+    }
+
+    .nav-btn.active {
+      color: #fff;
+    }
+
+    .nav-btn.active .icon {
+      transform: scale(1.06);
+    }
+
+    .toast-container {
+      position: fixed;
+      z-index: 20000;
+      left: 12px;
+      right: 12px;
+      top: calc(env(safe-area-inset-top) + 12px);
       display: flex;
-      align-items: center;
-      justify-content: center;
-
-      width: 38px;
-      height: 38px;
-
-      border-radius: 50%;
-
-      background: rgba(255, 153, 0, 0.92);
-      border: 3px solid white;
-
-      font-size: 21px;
-
-      box-shadow:
-        0 0 12px rgba(255, 153, 0, 0.9),
-        0 3px 10px rgba(0, 0, 0, 0.6);
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none;
     }
 
-    .neptun-alert-pulse {
-      animation: neptunPulse 1.2s infinite;
+    .toast {
+      background: #222;
+      border: 1px solid #444;
+      border-radius: 14px;
+      padding: 12px 14px;
+      color: #fff;
+      font-size: 14px;
+      box-shadow: 0 8px 30px rgba(0,0,0,.4);
+      animation: toastIn .2s ease-out;
     }
 
-    @keyframes neptunPulse {
-      0% {
-        box-shadow:
-          0 0 5px rgba(255, 0, 0, 0.5),
-          0 3px 10px rgba(0, 0, 0, 0.5);
-      }
-
-      50% {
-        box-shadow:
-          0 0 24px rgba(255, 0, 0, 1),
-          0 3px 10px rgba(0, 0, 0, 0.5);
-      }
-
-      100% {
-        box-shadow:
-          0 0 5px rgba(255, 0, 0, 0.5),
-          0 3px 10px rgba(0, 0, 0, 0.5);
-      }
+    .toast.success {
+      border-color: #286b39;
     }
 
-    /* =========================
-       MOBILE PANEL
-    ========================= */
+    .toast.error {
+      border-color: #a80000;
+    }
 
-    @media (max-width: 600px) {
-
-      #panelToggle {
-        display: block;
-      }
-
-      #panel {
-        top: 10px;
-        left: 10px;
-
-        width: 285px;
-        max-width: calc(100vw - 20px);
-
-        max-height: calc(100vh - 20px);
-
-        transform: translateX(
-          calc(-100% - 20px)
-        );
-
+    @keyframes toastIn {
+      from {
         opacity: 0;
-
-        pointer-events: none;
-
-        padding-top: 45px;
+        transform: translateY(-10px);
       }
 
-      #panel.panel-open {
-        transform: translateX(0);
-
+      to {
         opacity: 1;
-
-        pointer-events: auto;
+        transform: translateY(0);
       }
-
-      #panelClose {
-        display: block;
-      }
-
-      #panel h2 {
-        font-size: 16px;
-      }
-
-      .category-name {
-        font-size: 13px;
-      }
-
-      #neptunAttribution {
-        right: 6px;
-        bottom: 6px;
-
-        font-size: 10px;
-
-        padding: 4px 6px;
-      }
-
     }
 
-    /* =========================
-       VERY SMALL PHONES
-    ========================= */
-
-    @media (max-width: 380px) {
-
-      #panel {
-        width: 270px;
-      }
-
-      #panelToggle {
-        width: 42px;
-        height: 42px;
-
-        line-height: 42px;
-
-        font-size: 22px;
-      }
-
+    .neptun-note {
+      margin-top: 12px;
+      padding: 11px;
+      border-radius: 12px;
+      background: #151515;
+      color: #888;
+      font-size: 11px;
+      line-height: 1.45;
     }
 
+    .neptun-note a {
+      color: #72aaff;
+    }
+
+    .loading {
+      color: #888;
+      text-align: center;
+      padding: 20px 0;
+    }
+
+    @media (min-width: 700px) {
+      .screen:not(#screen-map) {
+        max-width: 700px;
+        margin: 0 auto;
+        left: 50%;
+        right: auto;
+        width: min(700px, 100%);
+        transform: translateX(-50%);
+      }
+
+      .screen#screen-map {
+        padding-left: 0;
+        padding-right: 0;
+      }
+    }
   </style>
 </head>
 
 <body>
 
-<div id="map"></div>
+<div id="app">
 
-<!-- =========================
-     MOBILE PANEL BUTTON
-========================= -->
+  <!-- ========================= -->
+  <!-- ГОЛОВНА -->
+  <!-- ========================= -->
 
-<button
-  id="panelToggle"
-  type="button"
-  aria-label="Відкрити налаштування карти"
-  title="Налаштування"
->
-  ☰
-</button>
-
-
-<div id="panel">
-
-  <!-- =========================
-       CLOSE PANEL
-  ========================= -->
-
-  <button
-    id="panelClose"
-    type="button"
-    aria-label="Закрити налаштування"
-    title="Закрити"
+  <section
+    id="screen-home"
+    class="screen active"
   >
-    ✕
-  </button>
+    <div class="header">
+      <h1>🏠 МапаПодійUA</h1>
+      <p>Актуальний статус подій біля вас</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📍 Статус біля вас</div>
+
+      <div id="home-status">
+        <div class="loading">
+          Отримання вашого місцезнаходження…
+        </div>
+      </div>
+
+      <div
+        id="location-status"
+        class="location-status"
+      >
+        GPS очікується…
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🔴 Повітряна тривога</div>
+
+      <div id="neptun-home-status">
+        Перевірка даних NEPTUN…
+      </div>
+
+      <div class="neptun-note">
+        Дані про повітряні тривоги надходять із
+        <a
+          href="https://neptun.in.ua/"
+          target="_blank"
+          rel="noopener"
+        >
+          NEPTUN
+        </a>.
+        NEPTUN є інформаційним агрегатором і не замінює
+        офіційні сигнали повітряної тривоги.
+      </div>
+    </div>
+  </section>
 
 
-  <h2>🗺️ МапаПодійUA — карта</h2>
+  <!-- ========================= -->
+  <!-- МАПА -->
+  <!-- ========================= -->
 
-  <div id="categories"></div>
+  <section
+    id="screen-map"
+    class="screen"
+    style="padding:0; overflow:hidden;"
+  >
+    <div class="map-wrapper">
+      <iframe
+        src="./map.html"
+        class="map-frame"
+        title="МапаПодійUA"
+        allow="geolocation"
+      ></iframe>
+    </div>
+  </section>
 
-  <!-- <div id="alertBadge">
-    🚨 УВАГА: Є ПОВІТРЯНА ТРИВОГА
-  </div> -->
 
-  <div id="status">
-    Завантаження...
-  </div>
+  <!-- ========================= -->
+  <!-- СПОВІЩЕННЯ -->
+  <!-- ========================= -->
+
+  <section
+    id="screen-notifications"
+    class="screen"
+  >
+    <div class="header">
+      <h1>🔔 Сповіщення</h1>
+      <p>Налаштування автоматичних повідомлень</p>
+    </div>
+
+    <div class="card">
+
+      <div class="settings-row">
+        <div class="settings-label">
+          <strong>📍 Доступ до GPS</strong>
+          <span>
+            Потрібен для визначення подій поруч із вами.
+          </span>
+        </div>
+
+        <label class="switch">
+          <input
+            id="gps-toggle"
+            type="checkbox"
+            checked
+          >
+          <span class="slider"></span>
+        </label>
+      </div>
+
+
+      <div class="settings-row">
+        <div class="settings-label">
+          <strong>🔔 Доступ до повідомлень</strong>
+          <span>
+            Дозволяє показувати системні сповіщення.
+          </span>
+        </div>
+
+        <label class="switch">
+          <input
+            id="notification-toggle"
+            type="checkbox"
+            checked
+          >
+          <span class="slider"></span>
+        </label>
+      </div>
+
+
+      <div class="settings-row">
+        <div class="settings-label">
+          <strong>📳 Вібрація</strong>
+          <span>
+            Вібрувати під час нового сповіщення.
+          </span>
+        </div>
+
+        <label class="switch">
+          <input
+            id="global-vibration"
+            type="checkbox"
+            checked
+          >
+          <span class="slider"></span>
+        </label>
+      </div>
+
+    </div>
+
+
+    <div class="card">
+      <div class="card-title">Типи подій</div>
+
+      <div id="category-settings"></div>
+    </div>
+
+
+    <div class="card">
+      <div class="card-title">⚪ Відбій</div>
+
+      <div class="settings-row">
+        <div class="settings-label">
+          <strong>Повідомляти про відбій</strong>
+          <span>
+            Використовується для подій, для яких передбачено вихід із зони.
+          </span>
+        </div>
+
+        <label class="switch">
+          <input
+            id="global-exit-toggle"
+            type="checkbox"
+            checked
+          >
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+
+  </section>
+
+
+  <!-- ========================= -->
+  <!-- ІНФОРМАЦІЯ -->
+  <!-- ========================= -->
+
+  <section
+    id="screen-info"
+    class="screen"
+  >
+    <div class="header">
+      <h1>ℹ️ Інформація</h1>
+      <p>Про МапаПодійUA</p>
+    </div>
+
+    <div class="card">
+
+      <div class="author">
+        Автор: ESO NET LIVE
+      </div>
+
+      <div
+        style="
+          color:#aaa;
+          font-size:14px;
+          line-height:1.5;
+        "
+      >
+        МапаПодійUA — інформаційний сервіс для
+        відображення актуальних подій в Україні.
+      </div>
+
+      <a
+        class="info-link"
+        href="mailto:esonetlive@gmail.com"
+      >
+        📧 esonetlive@gmail.com
+      </a>
+
+      <a
+        class="info-link"
+        href="https://discord.gg/D4sjtzFC"
+        target="_blank"
+        rel="noopener"
+      >
+        💬 Discord — приєднатися до спільноти
+      </a>
+
+      <a
+        class="info-link"
+        href="https://neptun.in.ua/"
+        target="_blank"
+        rel="noopener"
+      >
+        🌐 Дані повітряних тривог — NEPTUN
+      </a>
+
+    </div>
+
+
+    <div class="community">
+      Ви можете приєднатися до нашої спільноти,
+      щоб допомагати людям актуальною інформацією.
+    </div>
+
+    <div class="version">
+      МапаПодійUA — Beta test
+    </div>
+
+  </section>
+
+
+  <!-- ========================= -->
+  <!-- НИЖНЯ НАВІГАЦІЯ -->
+  <!-- ========================= -->
+
+  <nav class="bottom-nav">
+
+    <button
+      class="nav-btn active"
+      data-screen="home"
+      type="button"
+    >
+      <span class="icon">🏠</span>
+      <span>Головна</span>
+    </button>
+
+    <button
+      class="nav-btn"
+      data-screen="map"
+      type="button"
+    >
+      <span class="icon">🗺️</span>
+      <span>Мапа</span>
+    </button>
+
+    <button
+      class="nav-btn"
+      data-screen="notifications"
+      type="button"
+    >
+      <span class="icon">🔔</span>
+      <span>Сповіщення</span>
+    </button>
+
+    <button
+      class="nav-btn"
+      data-screen="info"
+      type="button"
+    >
+      <span class="icon">ℹ️</span>
+      <span>Інформація</span>
+    </button>
+
+  </nav>
 
 </div>
 
-<div id="neptunAttribution">
-  <a
-    href="https://neptun.in.ua/"
-    target="_blank"
-    rel="noopener noreferrer"
-  >
-    Дані: NEPTUN
-  </a>
-</div>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<div
+  id="toast-container"
+  class="toast-container"
+></div>
 
-<script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
 
+<!-- ====================================================== -->
 <!-- NEPTUN SDK -->
+<!-- ====================================================== -->
+
 <script src="https://neptun.in.ua/sdk/neptun.js"></script>
 
+
 <script>
+"use strict";
+
+
 /* =========================================================
-   GOOGLE APPS SCRIPT
+   ОСНОВНІ URL
 ========================================================= */
 
 const API_URL =
   "https://script.google.com/macros/s/AKfycbyH07BGYi4eAREpB-kTuZJmO-8fgtxUN6jLmIzorJQiRzoBw4EeX2ocXQ68TcDamKVXZw/exec";
 
 
-/* =========================================================
-   NEPTUN
-========================================================= */
+const NEPTUN_URL =
+  "https://neptun.in.ua";
 
-const NEPTUN_URL = "https://neptun.in.ua";
 
 const NEPTUN_ALERTS_URL =
   NEPTUN_URL + "/api/v1/alerts";
 
-const NEPTUN_THREATS_URL =
-  NEPTUN_URL + "/api/v1/threats";
-
-const NEPTUN_CATEGORY_ALERT = "1";
-const NEPTUN_CATEGORY_UAV = "2";
-
-
-/*
- * NEPTUN API не отдаёт нам готовые границы через указанные
- * endpoints GeoJSON, поэтому используем публичные GeoJSON
- * административных границ Украины.
- */
 
 const RAIONS_GEOJSON_URL =
   "https://raw.githubusercontent.com/slawomirmatuszak/ukrainian_geodata/main/rayony.geojson";
+
 
 const OBLASTS_GEOJSON_URL =
   "https://raw.githubusercontent.com/slawomirmatuszak/ukrainian_geodata/main/regiony.geojson";
 
 
 /* =========================================================
-   КАТЕГОРИИ
+   КАТЕГОРІЇ
 ========================================================= */
 
 const categories = {
 
   "1": {
-    name: "🚨 Повітряна тривога",
-    emoji: "🚨",
-    radius: 3000,
+    name: "Повітряна тривога",
+    emoji: "🔴",
     color: "#ff0000",
-    minZoom: 0,
-    show: true
+
+    sound: "alarm.mp3",
+
+    entryVoice: "alarm-entry.mp3",
+    exitVoice: "alarm-exit.mp3",
+
+    entryText:
+      "Увага, повітряна тривога! Пройдіть в найблище укриття",
+
+    exitText:
+      "Відбій повітряной тривоги!",
+
+    hasExit: true
   },
 
-  "2": {
-    name: "✈️ Літає / Авіація",
-    emoji: "✈️",
-    radius: 2500,
-    color: "#ff9900",
-    minZoom: 0,
-    show: true
-  },
 
   "3": {
-    name: "🔥 Вогонь / Пожежа",
-    emoji: "🔥",
-    radius: 800,
+    name: "Пожежа",
+    emoji: "🟠",
     color: "#ff6600",
-    minZoom: 0,
-    show: true
+
+    sound: "fire.mp3",
+
+    entryVoice: "fire-entry.mp3",
+    exitVoice: "fire-exit.mp3",
+
+    entryText:
+      "Увага, ви в зоні пожежи! Будь ласка покиньте або потушіть пожежу!",
+
+    exitText:
+      "Увага ви покинули зону або потушили пожежу",
+
+    hasExit: true
   },
+
 
   "4": {
-    name: "🚓 ТЦК чи поліція",
-    emoji: "🚓",
-    radius: 500,
+    name: "ТЦК чи поліція",
+    emoji: "🔵",
     color: "#3388ff",
-    minZoom: 11,
-    show: true
+
+    sound: "police.mp3",
+
+    entryVoice: "police-entry.mp3",
+    exitVoice: "police-exit.mp3",
+
+    entryText:
+      "Увага, біля вас може бути ТЦК чи поліцеськи. Зберігайте спокій та не порушуйте свої правила!",
+
+    exitText:
+      "Увага, ви покинули зону.",
+
+    hasExit: true
   },
+
 
   "5": {
-    name: "💥 ДТП",
+    name: "ДТП",
     emoji: "💥",
-    radius: 300,
     color: "#e60000",
-    minZoom: 11,
-    show: true
+
+    sound: "accident.mp3",
+
+    entryVoice: "accident-entry.mp3",
+    exitVoice: null,
+
+    entryText:
+      "Увага, біля вас відбулася аварія, зменшіть швидкість та поверніть назад",
+
+    exitText: null,
+
+    hasExit: false
   },
 
-  "6": {
-    name: "🚧 Перекрито",
-    emoji: "🚧",
-    radius: 50,
-    color: "#ffff00",
-    minZoom: 11,
-    show: true
-  },
 
   "7": {
-    name: "🪚 Побут",
-    emoji: "🪚",
-    radius: 0,
+    name: "Побут",
+    emoji: "🟢",
     color: "#888888",
-    minZoom: 14,
-    show: true
+
+    sound: "simple.mp3",
+
+    entryVoice: "simple-entry.mp3",
+    exitVoice: null,
+
+    entryText:
+      "Не панікуйте, відбуваєтся побут. Ви можете продовжити свою роботу",
+
+    exitText: null,
+
+    hasExit: false
   },
 
-  "8": {
-    name: "🌊 Болото",
-    emoji: "🌊",
-    radius: 50,
-    color: "#00cccc",
-    minZoom: 14,
-    show: false
-  },
 
   "9": {
-    name: "🚑 Екстрені машини",
-    emoji: "🚑",
-    radius: 500,
+    name: "Екстрені машини",
+    emoji: "🚨",
     color: "#ff3399",
-    minZoom: 11,
-    show: true
+
+    sound: "ambulance.mp3",
+
+    entryVoice: "ambulance-entry.mp3",
+    exitVoice: null,
+
+    entryText:
+      "Увага, працює швидка чи пожежники. Тому якщо побачите, пропустіть!",
+
+    exitText: null,
+
+    hasExit: false
   },
+
 
   "10": {
-    name: "⚰️ Шана / Похорон",
-    emoji: "⚰️",
-    radius: 0,
+    name: "Похорони",
+    emoji: "⚫",
     color: "#888888",
-    minZoom: 14,
-    show: true
+
+    sound: "funeral.mp3",
+
+    entryVoice: "funeral-entry.mp3",
+    exitVoice: null,
+
+    entryText:
+      "Будь ласка, будьте тихим та не порушуйте дисціпліну, адже відбуваєтся похорони або ви на кладбіщі",
+
+    exitText: null,
+
+    hasExit: false
   },
 
-  "11": {
-    name: "🎉 Події",
-    emoji: "🎉",
-    radius: 0,
-    color: "#9933ff",
-    minZoom: 14,
-    show: true
-  },
 
   "12": {
-    name: "💡 Відключення світла",
+    name: "Вимкнення світла",
     emoji: "💡",
-    radius: 500,
     color: "#ffd700",
-    minZoom: 11,
-    show: true
-  },
 
-  "13": {
-    name: "📰 Новини",
-    emoji: "📰",
-    radius: 0,
-    color: "#00aaff",
-    minZoom: 5,
-    show: true
+    sound: "power.mp3",
+
+    entryVoice: "power-entry.mp3",
+    exitVoice: "power-exit.mp3",
+
+    entryText:
+      "Світло було вимкнено, ви можете подивитися на карту, щоб дізнатися приблизну увімкнення світла.",
+
+    exitText:
+      "Світло було увімкненно!",
+
+    hasExit: true
   }
 
 };
 
 
 /* =========================================================
-   MAP
+   НАЛАШТУВАННЯ
 ========================================================= */
 
-const map = L.map("map", {
-  zoomControl: true
-}).setView([47.60, 32.25], 6);
+const DEFAULT_SETTINGS = {
+  gps: true,
+  notifications: true,
+  vibration: true,
+  globalExit: true,
+
+  categories: {}
+};
 
 
-/* =========================================================
-   TILE
-========================================================= */
+function createDefaultSettings() {
 
-L.tileLayer(
-  "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-  {
-    maxZoom: 19,
-    attribution:
-      '&copy; OpenStreetMap contributors'
+  const settings = structuredClone
+    ? structuredClone(DEFAULT_SETTINGS)
+    : JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
+
+  for (const id of Object.keys(categories)) {
+
+    settings.categories[id] = {
+
+      entry: true,
+
+      exit:
+        categories[id].hasExit,
+
+      entryVolume: 1,
+
+      exitVolume: 1,
+
+      vibration: true
+
+    };
+
   }
-).addTo(map);
+
+  return settings;
+}
+
+
+let settings =
+  loadSettings();
+
+
+function loadSettings() {
+
+  try {
+
+    const raw =
+      localStorage.getItem(
+        "mapaPodiySettings"
+      );
+
+    if (!raw) {
+      return createDefaultSettings();
+    }
+
+    const parsed =
+      JSON.parse(raw);
+
+    const defaults =
+      createDefaultSettings();
+
+    return {
+      ...defaults,
+      ...parsed,
+      categories: {
+        ...defaults.categories,
+        ...(parsed.categories || {})
+      }
+    };
+
+  } catch (error) {
+
+    console.error(
+      "Помилка завантаження налаштувань:",
+      error
+    );
+
+    return createDefaultSettings();
+  }
+
+}
+
+
+function saveSettings() {
+
+  try {
+
+    localStorage.setItem(
+      "mapaPodiySettings",
+      JSON.stringify(settings)
+    );
+
+  } catch (error) {
+
+    console.error(
+      "Помилка збереження налаштувань:",
+      error
+    );
+
+  }
+
+}
 
 
 /* =========================================================
-   LAYERS
+   СТАН
 ========================================================= */
 
-const sheetLayerGroup = L.layerGroup().addTo(map);
+let currentPosition = null;
 
-const neptunThreatLayerGroup =
-  L.layerGroup().addTo(map);
+let googleEvents = [];
 
-const neptunRaionLayerGroup =
-  L.layerGroup().addTo(map);
+let watchId = null;
 
-const neptunOblastLayerGroup =
-  L.layerGroup().addTo(map);
+let gpsStarted = false;
+
+let audioQueue = [];
+
+let audioPlaying = false;
+
+let sheetRefreshTimer = null;
+
+let neptunRestTimer = null;
+
+let neptunClient = null;
+
+let neptunStarted = false;
 
 
-/* =========================================================
-   DATA
-========================================================= */
+/*
+  Активні події біля користувача.
 
-let sheetObjects = [];
+  Ключ:
+  sheet:<id>
+  neptun-raion:<key>
+  neptun-oblast:<key>
+*/
 
-let neptunThreats = [];
+let activeLocalEvents =
+  new Map();
 
-let neptunAlerts = [];
 
-let neptunAlertOblasts = [];
+let previousLocalEvents =
+  new Map();
+
+
+/*
+  Геометрія NEPTUN.
+*/
 
 let raionsGeoJSON = null;
 
 let oblastsGeoJSON = null;
 
-
-/* =========================================================
-   CATEGORY VISIBILITY
-========================================================= */
-
-const visibleCategories = {};
-
-Object.keys(categories).forEach(id => {
-  visibleCategories[id] = categories[id].show;
-});
-
-
-/* =========================================================
-   MOBILE PANEL
-========================================================= */
-
-const panel =
-  document.getElementById("panel");
-
-const panelToggle =
-  document.getElementById("panelToggle");
-
-const panelClose =
-  document.getElementById("panelClose");
-
-
-function openPanel() {
-
-  if (!panel) {
-    return;
-  }
-
-  panel.classList.add(
-    "panel-open"
-  );
-
-  if (panelToggle) {
-    panelToggle.textContent = "✕";
-  }
-
-}
-
-
-function closePanel() {
-
-  if (!panel) {
-    return;
-  }
-
-  panel.classList.remove(
-    "panel-open"
-  );
-
-  if (panelToggle) {
-    panelToggle.textContent = "☰";
-  }
-
-}
-
-
-function togglePanel() {
-
-  if (!panel) {
-    return;
-  }
-
-  if (
-    panel.classList.contains(
-      "panel-open"
-    )
-  ) {
-
-    closePanel();
-
-  } else {
-
-    openPanel();
-
-  }
-
-}
-
-
-if (panelToggle) {
-
-  panelToggle.addEventListener(
-    "click",
-    togglePanel
-  );
-
-}
-
-
-if (panelClose) {
-
-  panelClose.addEventListener(
-    "click",
-    closePanel
-  );
-
-}
+let geometryLoadingPromise = null;
 
 
 /*
- * На телефоне после выбора категории
- * панель автоматически закрывается.
- *
- * Это позволяет сразу видеть карту.
- */
+  Поточний стан NEPTUN-тривог.
+*/
 
-function isMobileDevice() {
+let neptunAlertsState = {
+  raions: [],
+  oblasts: []
+};
 
-  return window.innerWidth <= 600;
+
+let previousNeptunInside =
+  new Set();
+
+
+/* =========================================================
+   НАВІГАЦІЯ
+========================================================= */
+
+const screens = {
+  home:
+    document.getElementById("screen-home"),
+
+  map:
+    document.getElementById("screen-map"),
+
+  notifications:
+    document.getElementById("screen-notifications"),
+
+  info:
+    document.getElementById("screen-info")
+};
+
+
+document
+  .querySelectorAll(".nav-btn")
+  .forEach(button => {
+
+    button.addEventListener(
+      "click",
+      () => {
+
+        const screen =
+          button.dataset.screen;
+
+        switchScreen(screen);
+
+      }
+    );
+
+  });
+
+
+function switchScreen(screenName) {
+
+  Object.values(screens)
+    .forEach(screen => {
+
+      screen.classList.remove("active");
+
+    });
+
+
+  if (screens[screenName]) {
+
+    screens[screenName]
+      .classList.add("active");
+
+  }
+
+
+  document
+    .querySelectorAll(".nav-btn")
+    .forEach(button => {
+
+      button.classList.toggle(
+        "active",
+        button.dataset.screen === screenName
+      );
+
+    });
 
 }
 
 
 /* =========================================================
-   CATEGORY PANEL
+   TOAST
 ========================================================= */
 
-function createCategoryPanel() {
+function showToast(
+  message,
+  type = ""
+) {
 
   const container =
-    document.getElementById("categories");
+    document.getElementById(
+      "toast-container"
+    );
+
+  const toast =
+    document.createElement("div");
+
+  toast.className =
+    "toast " + type;
+
+  toast.textContent =
+    message;
+
+  container.appendChild(toast);
+
+  setTimeout(() => {
+
+    toast.remove();
+
+  }, 4000);
+
+}
+
+
+/* =========================================================
+   НАЛАШТУВАННЯ UI
+========================================================= */
+
+function renderSettings() {
+
+  document.getElementById(
+    "gps-toggle"
+  ).checked =
+    !!settings.gps;
+
+
+  document.getElementById(
+    "notification-toggle"
+  ).checked =
+    !!settings.notifications;
+
+
+  document.getElementById(
+    "global-vibration"
+  ).checked =
+    !!settings.vibration;
+
+
+  document.getElementById(
+    "global-exit-toggle"
+  ).checked =
+    !!settings.globalExit;
+
+
+  const container =
+    document.getElementById(
+      "category-settings"
+    );
 
   container.innerHTML = "";
 
-  Object.entries(categories).forEach(
-    ([id, category]) => {
 
-      const row =
-        document.createElement("label");
-
-      row.className = "category";
-
-      const checkbox =
-        document.createElement("input");
-
-      checkbox.type = "checkbox";
-
-      checkbox.checked =
-        visibleCategories[id];
-
-      checkbox.dataset.category =
-        id;
-
-      checkbox.addEventListener(
-        "change",
-        function() {
-
-          visibleCategories[id] =
-            this.checked;
-
-          updateVisibility();
-
-        }
-      );
-
-      const name =
-        document.createElement("span");
-
-      name.className =
-        "category-name";
-
-      name.textContent =
-        category.name;
-
-      const count =
-        document.createElement("span");
-
-      count.className =
-        "category-count";
-
-      count.id =
-        "count-" + id;
-
-      count.textContent = "0";
-
-      row.appendChild(checkbox);
-      row.appendChild(name);
-      row.appendChild(count);
-
-      container.appendChild(row);
-
-    }
-  );
-
-}
-
-
-/* =========================================================
-   NORMALIZE TYPE
-========================================================= */
-
-function normalizeType(type) {
-
-  return String(type ?? "")
-    .trim()
-    .toLowerCase();
-
-}
-
-
-/* =========================================================
-   SHEET OBJECT CATEGORY
-========================================================= */
-
-function getSheetCategory(obj) {
-
-  return String(obj.type ?? "").trim();
-
-}
-
-
-/* =========================================================
-   EMOJI ICON
-========================================================= */
-
-function createEmojiIcon(
-  emoji,
-  color
-) {
-
-  return L.divIcon({
-
-    className: "",
-
-    html:
-      `<div
-        class="emoji-marker"
-        style="
-          border-color:${color};
-          box-shadow:
-            0 0 10px ${color},
-            0 2px 8px rgba(0,0,0,.5);
-        "
-      >${emoji}</div>`,
-
-    iconSize: [34, 34],
-
-    iconAnchor: [17, 17]
-
-  });
-
-}
-
-
-/* =========================================================
-   NEPTUN UAV ICON
-========================================================= */
-
-function createNeptunThreatIcon(
-  type
-) {
-
-  let emoji = "✈️";
-
-  if (type === "uav") {
-    emoji = "✈️";
-  }
-
-  return L.divIcon({
-
-    className: "",
-
-    html:
-      `<div
-        class="neptun-threat-marker"
-      >${emoji}</div>`,
-
-    iconSize: [38, 38],
-
-    iconAnchor: [19, 19]
-
-  });
-
-}
-
-
-/* =========================================================
-   SHEET OBJECT RENDER
-========================================================= */
-
-function renderSheetObjects() {
-
-  sheetLayerGroup.clearLayers();
-
-  sheetObjects.forEach(obj => {
-
-    const categoryId =
-      getSheetCategory(obj);
+  for (const id of Object.keys(categories)) {
 
     const category =
-      categories[categoryId];
+      categories[id];
 
-    if (!category) {
-      return;
-    }
+    const cfg =
+      settings.categories[id];
 
-    const lat =
-      Number(obj.lat);
 
-    const lng =
-      Number(obj.lng);
+    const wrapper =
+      document.createElement("div");
 
-    if (
-      !Number.isFinite(lat) ||
-      !Number.isFinite(lng)
-    ) {
-      return;
-    }
+    wrapper.className =
+      "category-setting";
 
-    const group =
-      L.layerGroup();
 
-    const marker =
-      L.marker(
-        [lat, lng],
-        {
-          icon:
-            createEmojiIcon(
-              category.emoji,
-              category.color
-            )
-        }
-      );
+    wrapper.innerHTML = `
+      <div class="category-head">
 
-    let radius =
-      Number(obj.radius);
+        <div class="category-name">
+          ${category.emoji}
+          ${category.name}
+        </div>
 
-    if (
-      !Number.isFinite(radius)
-    ) {
-      radius =
-        category.radius;
-    }
+        <label class="switch">
 
-    if (
-      radius > 0 &&
-      !obj.geojson
-    ) {
+          <input
+            type="checkbox"
+            data-setting="entry"
+            data-category="${id}"
+            ${cfg.entry ? "checked" : ""}
+          >
 
-      L.circle(
-        [lat, lng],
-        {
-          radius: radius,
+          <span class="slider"></span>
 
-          color: category.color,
+        </label>
 
-          fillColor: category.color,
+      </div>
 
-          fillOpacity: 0.12,
 
-          weight: 2
-        }
-      ).addTo(group);
+      <div class="subsetting">
 
-    }
+        <span>
+          Вхід у зону
+        </span>
 
-    if (obj.geojson) {
+        <span>
+          ${cfg.entry ? "Увімкнено" : "Вимкнено"}
+        </span>
 
-      try {
+      </div>
 
-        const geo =
-          typeof obj.geojson === "string"
-            ? JSON.parse(obj.geojson)
-            : obj.geojson;
 
-        L.geoJSON(
-          geo,
-          {
-            style: {
-              color: category.color,
-              weight: 3,
-              fillColor: category.color,
-              fillOpacity: 0.18
-            }
-          }
-        ).addTo(group);
+      <div class="subsetting">
 
-      } catch (error) {
+        <span>
+          🔊 Гучність входу
+        </span>
 
-        console.warn(
-          "Помилка GeoJSON:",
-          error
-        );
+        <div class="volume-row">
 
-      }
+          <input
+            type="range"
+            min="0"
+            max="1"
+            step="0.05"
+            value="${cfg.entryVolume}"
+            data-setting="entryVolume"
+            data-category="${id}"
+          >
 
-    }
-
-    /*
-     * NEWS POPUP
-     */
-
-    if (categoryId === "13") {
-
-      const title =
-        obj.title ||
-        obj.desc ||
-        "Новина";
-
-      const source =
-        obj.source ||
-        "Джерело";
-
-      const published =
-        obj.published ||
-        "";
-
-      const url =
-        obj.url ||
-        "";
-
-      marker.bindPopup(
-        `
-        <div style="min-width:220px">
-
-          <div style="
-            font-size:16px;
-            font-weight:bold;
-            margin-bottom:8px;
-          ">
-            📰 ${title}
-          </div>
-
-          ${
-            source
-              ? `
-                <div style="
-                  color:#777;
-                  font-size:12px;
-                  margin-bottom:6px;
-                ">
-                  Джерело: ${source}
-                </div>
-              `
-              : ""
-          }
-
-          ${
-            published
-              ? `
-                <div style="
-                  color:#888;
-                  font-size:11px;
-                  margin-bottom:8px;
-                ">
-                  ${published}
-                </div>
-              `
-              : ""
-          }
-
-          ${
-            obj.desc && obj.title
-              ? `
-                <div style="
-                  margin-bottom:10px;
-                ">
-                  ${obj.desc}
-                </div>
-              `
-              : ""
-          }
-
-          ${
-            url
-              ? `
-                <a
-                  href="${url}"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style="
-                    color:#0088cc;
-                    font-weight:bold;
-                  "
-                >
-                  Відкрити джерело →
-                </a>
-              `
-              : ""
-          }
+          <span class="volume-value">
+            ${Math.round(cfg.entryVolume * 100)}%
+          </span>
 
         </div>
-        `
+
+      </div>
+
+
+      ${
+        category.hasExit
+          ? `
+
+            <div class="subsetting">
+
+              <span>
+                ⚪ Відбій
+              </span>
+
+              <label class="switch">
+
+                <input
+                  type="checkbox"
+                  data-setting="exit"
+                  data-category="${id}"
+                  ${cfg.exit ? "checked" : ""}
+                >
+
+                <span class="slider"></span>
+
+              </label>
+
+            </div>
+
+
+            <div class="subsetting">
+
+              <span>
+                🔊 Гучність відбою
+              </span>
+
+              <div class="volume-row">
+
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.05"
+                  value="${cfg.exitVolume}"
+                  data-setting="exitVolume"
+                  data-category="${id}"
+                >
+
+                <span class="volume-value">
+                  ${Math.round(cfg.exitVolume * 100)}%
+                </span>
+
+              </div>
+
+            </div>
+
+          `
+          : ""
+      }
+
+
+      <div class="subsetting">
+
+        <span>
+          📳 Вібрація для цієї події
+        </span>
+
+        <label class="switch">
+
+          <input
+            type="checkbox"
+            data-setting="vibration"
+            data-category="${id}"
+            ${cfg.vibration ? "checked" : ""}
+          >
+
+          <span class="slider"></span>
+
+        </label>
+
+      </div>
+    `;
+
+
+    container.appendChild(
+      wrapper
+    );
+
+  }
+
+
+  container
+    .querySelectorAll("input")
+    .forEach(input => {
+
+      input.addEventListener(
+        "change",
+        handleSettingChange
       );
+
+      input.addEventListener(
+        "input",
+        handleSettingChange
+      );
+
+    });
+
+}
+
+
+function handleSettingChange(event) {
+
+  const input =
+    event.target;
+
+  const setting =
+    input.dataset.setting;
+
+  const categoryId =
+    input.dataset.category;
+
+
+  if (!setting) {
+    return;
+  }
+
+
+  if (categoryId) {
+
+    if (
+      setting === "entryVolume" ||
+      setting === "exitVolume"
+    ) {
+
+      settings.categories[categoryId][setting] =
+        Number(input.value);
 
     } else {
 
-      marker.bindPopup(
-        `
-        <b>${category.name}</b>
-        <br><br>
+      settings.categories[categoryId][setting] =
+        input.checked;
 
-        ${
-          obj.desc
-            ? String(obj.desc)
-            : ""
-        }
+    }
 
-        ${
-          obj.village
-            ? `<br><br>від ${obj.village}`
-            : ""
+  } else {
+
+    if (setting === "gps") {
+      settings.gps = input.checked;
+    }
+
+  }
+
+
+  if (input.id === "gps-toggle") {
+
+    settings.gps =
+      input.checked;
+
+    if (settings.gps) {
+
+      startGPS();
+
+    } else {
+
+      stopGPS();
+
+    }
+
+  }
+
+
+  if (
+    input.id ===
+    "notification-toggle"
+  ) {
+
+    settings.notifications =
+      input.checked;
+
+    if (
+      settings.notifications
+    ) {
+
+      requestNotificationPermission();
+
+    }
+
+  }
+
+
+  if (
+    input.id ===
+    "global-vibration"
+  ) {
+
+    settings.vibration =
+      input.checked;
+
+  }
+
+
+  if (
+    input.id ===
+    "global-exit-toggle"
+  ) {
+
+    settings.globalExit =
+      input.checked;
+
+  }
+
+
+  saveSettings();
+
+  renderSettings();
+
+}
+
+
+/* =========================================================
+   NOTIFICATION
+========================================================= */
+
+async function requestNotificationPermission() {
+
+  if (
+    !("Notification" in window)
+  ) {
+
+    return false;
+
+  }
+
+
+  if (
+    Notification.permission ===
+    "granted"
+  ) {
+
+    return true;
+
+  }
+
+
+  if (
+    Notification.permission ===
+    "denied"
+  ) {
+
+    return false;
+
+  }
+
+
+  try {
+
+    const permission =
+      await Notification.requestPermission();
+
+    return (
+      permission ===
+      "granted"
+    );
+
+  } catch (error) {
+
+    console.error(
+      "Помилка Notification permission:",
+      error
+    );
+
+    return false;
+
+  }
+
+}
+
+
+async function showSystemNotification(
+  title,
+  body,
+  tag
+) {
+
+  if (
+    !settings.notifications
+  ) {
+
+    return;
+
+  }
+
+
+  if (
+    !("Notification" in window)
+  ) {
+
+    return;
+
+  }
+
+
+  if (
+    Notification.permission !==
+    "granted"
+  ) {
+
+    return;
+
+  }
+
+
+  try {
+
+    if (
+      navigator.serviceWorker
+    ) {
+
+      const registration =
+        await navigator.serviceWorker.ready;
+
+      await registration.showNotification(
+        title,
+        {
+          body,
+          icon: "./manifest.json",
+          badge: "./manifest.json",
+          tag,
+          renotify: true,
+          vibrate: [250, 150, 500],
+          data: {
+            url:
+              location.href
+          }
         }
-        `
+      );
+
+      return;
+
+    }
+
+  } catch (error) {
+
+    console.warn(
+      "Service Worker notification error:",
+      error
+    );
+
+  }
+
+
+  try {
+
+    new Notification(
+      title,
+      {
+        body,
+        tag
+      }
+    );
+
+  } catch (error) {
+
+    console.warn(
+      "Notification fallback error:",
+      error
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   ВІБРАЦІЯ
+========================================================= */
+
+function vibrateForEvent(
+  categoryId
+) {
+
+  if (
+    !settings.vibration
+  ) {
+
+    return;
+
+  }
+
+
+  const cfg =
+    settings.categories[
+      categoryId
+    ];
+
+  if (
+    cfg &&
+    !cfg.vibration
+  ) {
+
+    return;
+
+  }
+
+
+  if (
+    "vibrate" in navigator
+  ) {
+
+    try {
+
+      navigator.vibrate([
+        250,
+        150,
+        500
+      ]);
+
+    } catch (error) {
+
+      console.warn(
+        "Vibration error:",
+        error
       );
 
     }
 
-    marker.addTo(group);
+  }
 
-    group._category =
-      categoryId;
+}
 
-    group._sheetObject =
-      true;
 
-    group.addTo(sheetLayerGroup);
+/* =========================================================
+   AUDIO
+========================================================= */
+
+function audioPath(
+  folder,
+  file
+) {
+
+  return (
+    "./" +
+    folder +
+    "/" +
+    file
+  );
+
+}
+
+
+function waitForAudio(
+  audio
+) {
+
+  return new Promise(resolve => {
+
+    let finished =
+      false;
+
+
+    const finish = () => {
+
+      if (finished) {
+        return;
+      }
+
+      finished = true;
+
+      audio.onended = null;
+      audio.onerror = null;
+
+      resolve();
+
+    };
+
+
+    audio.onended =
+      finish;
+
+    audio.onerror =
+      finish;
+
+    audio.onabort =
+      finish;
 
   });
 
 }
 
 
-/* =========================================================
-   UPDATE VISIBILITY
-========================================================= */
+async function playAudioFile(
+  folder,
+  file,
+  volume
+) {
 
-function updateVisibility() {
+  if (!file) {
+    return;
+  }
 
-  /*
-   * Google Sheets
-   */
 
-  sheetLayerGroup.eachLayer(
-    layer => {
+  const audio =
+    new Audio(
+      audioPath(
+        folder,
+        file
+      )
+    );
 
-      const category =
-        layer._category;
 
-      if (
-        visibleCategories[category]
-      ) {
+  audio.preload =
+    "auto";
 
-        if (!map.hasLayer(layer)) {
-          map.addLayer(layer);
-        }
 
-      } else {
+  audio.volume =
+    Math.max(
+      0,
+      Math.min(
+        1,
+        Number(volume ?? 1)
+      )
+    );
 
-        if (map.hasLayer(layer)) {
-          map.removeLayer(layer);
-        }
 
-      }
+  try {
+
+    const playPromise =
+      audio.play();
+
+
+    if (
+      playPromise &&
+      typeof playPromise.then ===
+      "function"
+    ) {
+
+      await playPromise;
 
     }
+
+    await waitForAudio(
+      audio
+    );
+
+  } catch (error) {
+
+    /*
+      Якщо браузер не дозволив
+      autoplay — просто пропускаємо
+      файл, не ламаючи чергу.
+    */
+
+    console.warn(
+      "Не вдалося відтворити:",
+      folder,
+      file,
+      error
+    );
+
+  }
+
+}
+
+
+function queueEventAudio(
+  categoryId,
+  exit = false
+) {
+
+  const category =
+    categories[categoryId];
+
+  const cfg =
+    settings.categories[
+      categoryId
+    ];
+
+
+  if (
+    !category ||
+    !cfg
+  ) {
+
+    return;
+
+  }
+
+
+  if (
+    exit &&
+    !cfg.exit
+  ) {
+
+    return;
+
+  }
+
+
+  if (
+    !exit &&
+    !cfg.entry
+  ) {
+
+    return;
+
+  }
+
+
+  const item = {
+    categoryId,
+    exit
+  };
+
+
+  audioQueue.push(
+    item
   );
 
 
-  /*
-   * NEPTUN UAV / threats
-   */
+  processAudioQueue();
+
+}
+
+
+async function processAudioQueue() {
 
   if (
-    visibleCategories[NEPTUN_CATEGORY_UAV]
+    audioPlaying
   ) {
 
-    if (!map.hasLayer(neptunThreatLayerGroup)) {
-      map.addLayer(
-        neptunThreatLayerGroup
-      );
-    }
-
-  } else {
-
-    if (map.hasLayer(neptunThreatLayerGroup)) {
-      map.removeLayer(
-        neptunThreatLayerGroup
-      );
-    }
+    return;
 
   }
 
 
-  /*
-   * NEPTUN alerts = CATEGORY 1
-   */
-
   if (
-    visibleCategories[NEPTUN_CATEGORY_ALERT]
+    audioQueue.length === 0
   ) {
 
-    if (!map.hasLayer(neptunRaionLayerGroup)) {
-      map.addLayer(
-        neptunRaionLayerGroup
-      );
-    }
-
-    if (!map.hasLayer(neptunOblastLayerGroup)) {
-      map.addLayer(
-        neptunOblastLayerGroup
-      );
-    }
-
-  } else {
-
-    if (map.hasLayer(neptunRaionLayerGroup)) {
-      map.removeLayer(
-        neptunRaionLayerGroup
-      );
-    }
-
-    if (map.hasLayer(neptunOblastLayerGroup)) {
-      map.removeLayer(
-        neptunOblastLayerGroup
-      );
-    }
+    return;
 
   }
 
 
-  updateCategoryCounts();
+  audioPlaying =
+    true;
+
+
+  const item =
+    audioQueue.shift();
+
+
+  try {
+
+    const category =
+      categories[
+        item.categoryId
+      ];
+
+    const cfg =
+      settings.categories[
+        item.categoryId
+      ];
+
+
+    if (
+      !category ||
+      !cfg
+    ) {
+
+      return;
+
+    }
+
+
+    const soundVolume =
+      item.exit
+        ? cfg.exitVolume
+        : cfg.entryVolume;
+
+
+    const voiceVolume =
+      item.exit
+        ? cfg.exitVolume
+        : cfg.entryVolume;
+
+
+    /*
+      1. Звуковий сигнал
+    */
+
+    await playAudioFile(
+      "Sound",
+      category.sound,
+      soundVolume
+    );
+
+
+    /*
+      2. Голос
+    */
+
+    const voiceFile =
+      item.exit
+        ? category.exitVoice
+        : category.entryVoice;
+
+
+    await playAudioFile(
+      "Voice",
+      voiceFile,
+      voiceVolume
+    );
+
+  } catch (error) {
+
+    console.error(
+      "Помилка audio queue:",
+      error
+    );
+
+  } finally {
+
+    audioPlaying =
+      false;
+
+    processAudioQueue();
+
+  }
 
 }
 
 
 /* =========================================================
-   CATEGORY COUNTS
+   ПОВНЕ СПОВІЩЕННЯ ПРО ПОДІЮ
 ========================================================= */
 
-function updateCategoryCounts() {
+async function announceEvent({
+  categoryId,
+  title,
+  text,
+  eventKey,
+  exit = false
+}) {
 
-  const counts = {};
+  const category =
+    categories[categoryId];
 
-  Object.keys(categories).forEach(
-    id => counts[id] = 0
+  const cfg =
+    settings.categories[
+      categoryId
+    ];
+
+
+  if (
+    !category ||
+    !cfg
+  ) {
+
+    return;
+
+  }
+
+
+  if (
+    exit &&
+    !settings.globalExit
+  ) {
+
+    return;
+
+  }
+
+
+  if (
+    exit &&
+    !cfg.exit
+  ) {
+
+    return;
+
+  }
+
+
+  if (
+    !exit &&
+    !cfg.entry
+  ) {
+
+    return;
+
+  }
+
+
+  /*
+    1. Системне повідомлення
+  */
+
+  await showSystemNotification(
+    title ||
+      (
+        category.emoji +
+        " " +
+        category.name
+      ),
+    text ||
+      (
+        exit
+          ? category.exitText
+          : category.entryText
+      ),
+    eventKey
   );
 
 
   /*
-   * Google Sheets
-   */
+    2. Вібрація
+  */
 
-  sheetObjects.forEach(obj => {
-
-    const type =
-      getSheetCategory(obj);
-
-    if (counts[type] !== undefined) {
-      counts[type]++;
-    }
-
-  });
-
-
-  /*
-   * NEPTUN UAV
-   */
-
-  neptunThreats.forEach(
-    threat => {
-
-      const category =
-        getNeptunThreatCategory(
-          threat
-        );
-
-      if (
-        counts[category] !== undefined
-      ) {
-        counts[category]++;
-      }
-
-    }
+  vibrateForEvent(
+    categoryId
   );
 
 
   /*
-   * NEPTUN air alerts
-   *
-   * ВАЖНО:
-   * район + область считаються
-   * частиною категорії 1.
-   */
+    3. Sound
+       4. Voice
+  */
 
-  counts["1"] +=
-    neptunAlerts.length;
-
-  counts["1"] +=
-    neptunAlertOblasts.length;
-
-
-  Object.keys(categories).forEach(
-    id => {
-
-      const element =
-        document.getElementById(
-          "count-" + id
-        );
-
-      if (element) {
-        element.textContent =
-          counts[id];
-      }
-
-    }
+  queueEventAudio(
+    categoryId,
+    exit
   );
 
 }
 
 
 /* =========================================================
-   LOAD GOOGLE SHEETS
+   GOOGLE SHEETS API
 ========================================================= */
 
-async function loadSheetData() {
+async function fetchGoogleEvents() {
 
   try {
 
@@ -1424,632 +2207,1256 @@ async function loadSheetData() {
       await fetch(
         API_URL +
         "?t=" +
-        Date.now()
+        Date.now(),
+        {
+          cache: "no-store"
+        }
       );
 
+
     if (!response.ok) {
+
       throw new Error(
-        "HTTP " + response.status
+        "HTTP " +
+        response.status
       );
+
     }
+
 
     const data =
       await response.json();
 
-    if (!Array.isArray(data)) {
+
+    if (
+      !Array.isArray(data)
+    ) {
+
       throw new Error(
-        "API повернув не масив"
+        "API повернув неправильний формат"
       );
+
     }
 
-    sheetObjects =
-      data;
 
-    renderSheetObjects();
+    googleEvents =
+      data
+        .map(normalizeGoogleEvent)
+        .filter(Boolean);
 
-    updateVisibility();
 
-    updateStatus();
+    updateLocalGoogleEvents();
+
 
   } catch (error) {
 
     console.error(
-      "Google Sheets:",
+      "Google API error:",
       error
     );
 
-    document.getElementById(
-      "status"
-    ).textContent =
-      "Помилка завантаження даних карти";
-
   }
 
 }
 
 
-/* =========================================================
-   NORMALIZE NAME
-========================================================= */
-
-function normalizeName(value) {
-
-  return String(value || "")
-    .toLowerCase()
-    .replaceAll("’", "'")
-    .replaceAll("`", "'")
-    .replace(/область$/u, "")
-    .replace(/район$/u, "")
-    .replace(/області$/u, "")
-    .replace(/району$/u, "")
-    .replace(/[^а-яіїєґa-z0-9]/giu, "");
-
-}
-
-
-/* =========================================================
-   GET ALL GEOJSON PROPERTY NAMES
-========================================================= */
-
-function getFeatureNames(feature) {
-
-  const props =
-    feature?.properties || {};
-
-  const values = [];
-
-  Object.keys(props).forEach(
-    key => {
-
-      const value =
-        props[key];
-
-      if (
-        typeof value === "string"
-      ) {
-
-        values.push(value);
-
-      }
-
-    }
-  );
-
-  return values;
-
-}
-
-
-/* =========================================================
-   GEOJSON FEATURE MATCH
-========================================================= */
-
-function featureMatchesAlert(
-  feature,
-  alert
+function normalizeGoogleEvent(
+  item
 ) {
 
-  const alertName =
-    normalizeName(
-      alert?.name
-    );
-
-  if (!alertName) {
-    return false;
+  if (!item) {
+    return null;
   }
 
-  return getFeatureNames(feature)
-    .some(
-      name =>
-        normalizeName(name) ===
-        alertName
-    );
 
-}
+  const lat =
+    Number(item.lat);
+
+  const lng =
+    Number(item.lng);
 
 
-/* =========================================================
-   FIND RAION ALERT
-========================================================= */
+  if (
+    !Number.isFinite(lat) ||
+    !Number.isFinite(lng)
+  ) {
 
-function findRaionAlert(
-  feature
-) {
+    return null;
 
-  return (
-    neptunAlerts.find(
-      alert =>
-        featureMatchesAlert(
-          feature,
-          alert
-        )
-    ) || null
-  );
-
-}
+  }
 
 
-/* =========================================================
-   FIND OBLAST ALERT
-========================================================= */
-
-function findOblastAlert(
-  feature
-) {
-
-  return (
-    neptunAlertOblasts.find(
-      alert =>
-        featureMatchesAlert(
-          feature,
-          alert
-        )
-    ) || null
-  );
-
-}
-
-
-/* =========================================================
-   ALERT STYLE
-========================================================= */
-
-function getAlertStyle(
-  alert,
-  isOblast
-) {
-
-  const level =
+  const type =
     String(
-      alert?.level || ""
-    ).toLowerCase();
+      item.type ??
+      ""
+    );
 
 
-  /*
-   * RED = active official red alert
-   */
+  if (
+    !categories[type]
+  ) {
 
-  if (level === "red") {
-
-    return {
-
-      color: "#ff0000",
-
-      weight: isOblast ? 4 : 3,
-
-      opacity: 1,
-
-      fillColor: "#ff0000",
-
-      fillOpacity:
-        isOblast
-          ? 0.16
-          : 0.28
-
-    };
+    return null;
 
   }
 
-
-  /*
-   * YELLOW = yellow alert
-   */
-
-  if (level === "yellow") {
-
-    return {
-
-      color: "#ffcc00",
-
-      weight: isOblast ? 3 : 2,
-
-      opacity: 1,
-
-      fillColor: "#ffcc00",
-
-      fillOpacity:
-        isOblast
-          ? 0.10
-          : 0.18
-
-    };
-
-  }
-
-
-  /*
-   * fallback
-   */
 
   return {
 
-    color: "#ff0000",
+    ...item,
 
-    weight: 3,
+    id:
+      String(
+        item.id ??
+        cryptoRandomId()
+      ),
 
-    opacity: 1,
+    lat,
 
-    fillColor: "#ff0000",
+    lng,
 
-    fillOpacity: 0.18
+    type,
+
+    radius:
+      Number(
+        item.radius ??
+        0
+      ),
+
+    village:
+      item.village ||
+      "",
+
+    title:
+      item.title ||
+      categories[type].name,
+
+    desc:
+      item.desc ||
+      "",
+
+    geojson:
+      item.geojson ||
+      null
 
   };
 
 }
 
 
-/* =========================================================
-   LOAD NEPTUN GEOJSON
-========================================================= */
+function cryptoRandomId() {
 
-async function loadNeptunGeoJSON() {
-
-  try {
-
-    const [
-      raionResponse,
-      oblastResponse
-    ] = await Promise.all([
-
-      fetch(
-        RAIONS_GEOJSON_URL +
-        "?t=" +
-        Date.now()
-      ),
-
-      fetch(
-        OBLASTS_GEOJSON_URL +
-        "?t=" +
-        Date.now()
-      )
-
-    ]);
-
-
-    if (!raionResponse.ok) {
-      throw new Error(
-        "Raions GeoJSON HTTP " +
-        raionResponse.status
-      );
-    }
-
-    if (!oblastResponse.ok) {
-      throw new Error(
-        "Oblasts GeoJSON HTTP " +
-        oblastResponse.status
-      );
-    }
-
-
-    raionsGeoJSON =
-      await raionResponse.json();
-
-    oblastsGeoJSON =
-      await oblastResponse.json();
-
-
-    console.log(
-      "GeoJSON районів завантажено"
-    );
-
-    console.log(
-      "GeoJSON областей завантажено"
-    );
-
-
-    renderAlertZones();
-
-  } catch (error) {
-
-    console.error(
-      "GeoJSON NEPTUN:",
-      error
-    );
-
-  }
+  return (
+    Date.now() +
+    "-" +
+    Math.random()
+      .toString(36)
+      .slice(2)
+  );
 
 }
 
 
 /* =========================================================
-   RENDER ALERT ZONES
+   GPS
 ========================================================= */
 
-function renderAlertZones() {
-
-  neptunRaionLayerGroup.clearLayers();
-
-  neptunOblastLayerGroup.clearLayers();
-
-
-  /*
-   * ================================
-   * OBLASTS FIRST
-   * ================================
-   *
-   * Області малюємо першими,
-   * щоб райони були зверху.
-   */
+function startGPS() {
 
   if (
-    oblastsGeoJSON &&
-    Array.isArray(
-      oblastsGeoJSON.features
-    )
+    gpsStarted
   ) {
 
-    oblastsGeoJSON.features.forEach(
-      feature => {
+    return;
 
-        const alert =
-          findOblastAlert(
-            feature
-          );
-
-        if (!alert) {
-          return;
-        }
-
-        const layer =
-          L.geoJSON(
-            feature,
-            {
-              style:
-                getAlertStyle(
-                  alert,
-                  true
-                ),
-
-              interactive: false
-            }
-          );
+  }
 
 
-        /*
-         * КЛЮЧОВЕ:
-         * NEPTUN область = категорія 1
-         */
+  if (
+    !navigator.geolocation
+  ) {
 
-        layer._category =
-          NEPTUN_CATEGORY_ALERT;
+    updateLocationStatus(
+      "GPS не підтримується цим браузером.",
+      "error"
+    );
 
-        layer._neptunAlert =
-          true;
+    return;
 
-        layer._neptunOblast =
-          true;
-
-
-        layer.bindTooltip(
-          `
-          🚨
-          ${alert.name}
-          <br>
-          Рівень:
-          ${alert.level || "невідомий"}
-          `,
-          {
-            sticky: true
-          }
-        );
+  }
 
 
-        layer.addTo(
-          neptunOblastLayerGroup
-        );
+  gpsStarted =
+    true;
 
+
+  updateLocationStatus(
+    "Отримання GPS…",
+    ""
+  );
+
+
+  watchId =
+    navigator.geolocation.watchPosition(
+      handleGPSPosition,
+      handleGPSError,
+      {
+        enableHighAccuracy: true,
+        maximumAge: 5000,
+        timeout: 15000
       }
     );
 
+}
+
+
+function stopGPS() {
+
+  if (
+    watchId !== null
+  ) {
+
+    navigator.geolocation.clearWatch(
+      watchId
+    );
+
   }
 
 
-  /*
-   * ================================
-   * RAIONS
-   * ================================
-   */
+  watchId =
+    null;
+
+  gpsStarted =
+    false;
+
+  currentPosition =
+    null;
+
+
+  updateLocationStatus(
+    "GPS вимкнено.",
+    ""
+  );
+
+}
+
+
+function handleGPSPosition(
+  position
+) {
+
+  currentPosition = {
+
+    lat:
+      position.coords.latitude,
+
+    lng:
+      position.coords.longitude,
+
+    accuracy:
+      position.coords.accuracy
+
+  };
+
+
+  updateLocationStatus(
+    "GPS працює. Точність приблизно " +
+    Math.round(
+      currentPosition.accuracy
+    ) +
+    " м.",
+    "ok"
+  );
+
+
+  updateLocalGoogleEvents();
+
+  updateNeptunInsideStatus();
+
+}
+
+
+function handleGPSError(
+  error
+) {
+
+  console.warn(
+    "GPS error:",
+    error
+  );
+
+
+  let message =
+    "Не вдалося отримати GPS.";
+
 
   if (
-    raionsGeoJSON &&
-    Array.isArray(
-      raionsGeoJSON.features
+    error &&
+    error.code ===
+    1
+  ) {
+
+    message =
+      "Доступ до GPS заборонено.";
+
+  }
+
+
+  updateLocationStatus(
+    message,
+    "error"
+  );
+
+}
+
+
+function updateLocationStatus(
+  message,
+  className
+) {
+
+  const element =
+    document.getElementById(
+      "location-status"
+    );
+
+
+  element.textContent =
+    message;
+
+
+  element.className =
+    "location-status " +
+    (className || "");
+
+}
+
+
+/* =========================================================
+   GOOGLE EVENTS — ВІДСТАНЬ
+========================================================= */
+
+function distanceMeters(
+  lat1,
+  lon1,
+  lat2,
+  lon2
+) {
+
+  const R =
+    6371000;
+
+
+  const p1 =
+    lat1 *
+    Math.PI /
+    180;
+
+
+  const p2 =
+    lat2 *
+    Math.PI /
+    180;
+
+
+  const dLat =
+    (lat2 - lat1) *
+    Math.PI /
+    180;
+
+
+  const dLon =
+    (lon2 - lon1) *
+    Math.PI /
+    180;
+
+
+  const a =
+    Math.sin(dLat / 2) *
+    Math.sin(dLat / 2) +
+    Math.cos(p1) *
+    Math.cos(p2) *
+    Math.sin(dLon / 2) *
+    Math.sin(dLon / 2);
+
+
+  const c =
+    2 *
+    Math.atan2(
+      Math.sqrt(a),
+      Math.sqrt(1 - a)
+    );
+
+
+  return R * c;
+
+}
+
+
+/* =========================================================
+   POINT IN POLYGON
+========================================================= */
+
+function pointInRing(
+  lat,
+  lng,
+  ring
+) {
+
+  let inside =
+    false;
+
+
+  for (
+    let i = 0,
+    j = ring.length - 1;
+
+    i < ring.length;
+
+    j = i++
+  ) {
+
+    const xi =
+      Number(
+        ring[i][0]
+      );
+
+    const yi =
+      Number(
+        ring[i][1]
+      );
+
+    const xj =
+      Number(
+        ring[j][0]
+      );
+
+    const yj =
+      Number(
+        ring[j][1]
+      );
+
+
+    const intersect =
+      (
+        yi > lat
+      ) !==
+      (
+        yj > lat
+      ) &&
+      lng <
+      (
+        (xj - xi) *
+        (lat - yi) /
+        (yj - yi) +
+        xi
+      );
+
+
+    if (intersect) {
+      inside = !inside;
+    }
+
+  }
+
+
+  return inside;
+
+}
+
+
+function pointInPolygon(
+  lat,
+  lng,
+  polygon
+) {
+
+  if (
+    !Array.isArray(polygon) ||
+    polygon.length === 0
+  ) {
+
+    return false;
+
+  }
+
+
+  if (
+    !pointInRing(
+      lat,
+      lng,
+      polygon[0]
     )
   ) {
 
-    raionsGeoJSON.features.forEach(
-      feature => {
-
-        const alert =
-          findRaionAlert(
-            feature
-          );
-
-        if (!alert) {
-          return;
-        }
-
-        const layer =
-          L.geoJSON(
-            feature,
-            {
-              style:
-                getAlertStyle(
-                  alert,
-                  false
-                ),
-
-              interactive: false
-            }
-          );
-
-
-        /*
-         * КЛЮЧОВЕ:
-         * NEPTUN район = категорія 1
-         */
-
-        layer._category =
-          NEPTUN_CATEGORY_ALERT;
-
-        layer._neptunAlert =
-          true;
-
-        layer._neptunRaion =
-          true;
-
-
-        layer.bindTooltip(
-          `
-          🚨
-          ${alert.name}
-          <br>
-          Рівень:
-          ${alert.level || "невідомий"}
-          `,
-          {
-            sticky: true
-          }
-        );
-
-
-        layer.addTo(
-          neptunRaionLayerGroup
-        );
-
-      }
-    );
+    return false;
 
   }
 
 
-  updateVisibility();
-
-}
-
-
-/* =========================================================
-   GET THREAT CATEGORY
-========================================================= */
-
-function getNeptunThreatCategory(
-  threat
-) {
-
-  const type =
-    normalizeType(
-      threat?.type
-    );
-
-
-  /*
-   * ШАХЕД / БПЛА
-   *
-   * ВСЕ UAV -> КАТЕГОРІЯ 2
-   */
-
-  if (type === "uav") {
-
-    return NEPTUN_CATEGORY_UAV;
-
-  }
-
-
-  /*
-   * Інші повітряні загрози
-   * також відносимо до авіації.
-   */
-
-  if (
-    type === "missile" ||
-    type === "rocket" ||
-    type === "aircraft" ||
-    type === "plane"
+  for (
+    let i = 1;
+    i < polygon.length;
+    i++
   ) {
-
-    return NEPTUN_CATEGORY_UAV;
-
-  }
-
-
-  return NEPTUN_CATEGORY_UAV;
-
-}
-
-
-/* =========================================================
-   THREAT POSITION
-========================================================= */
-
-function getThreatPosition(
-  threat
-) {
-
-  /*
-   * НЕПТУН SDK prediction
-   */
-
-  try {
 
     if (
-      window.NEPTUN &&
-      typeof NEPTUN.predict ===
-        "function"
+      pointInRing(
+        lat,
+        lng,
+        polygon[i]
+      )
     ) {
 
-      const predicted =
-        NEPTUN.predict(
-          threat,
-          Date.now()
-        );
+      return false;
+
+    }
+
+  }
+
+
+  return true;
+
+}
+
+
+function pointInGeometry(
+  lat,
+  lng,
+  geometry
+) {
+
+  if (!geometry) {
+    return false;
+  }
+
+
+  if (
+    geometry.type ===
+    "Polygon"
+  ) {
+
+    return pointInPolygon(
+      lat,
+      lng,
+      geometry.coordinates
+    );
+
+  }
+
+
+  if (
+    geometry.type ===
+    "MultiPolygon"
+  ) {
+
+    return geometry.coordinates.some(
+      polygon =>
+        pointInPolygon(
+          lat,
+          lng,
+          polygon
+        )
+    );
+
+  }
+
+
+  return false;
+
+}
+
+
+function featureContainsPoint(
+  feature,
+  lat,
+  lng
+) {
+
+  return pointInGeometry(
+    lat,
+    lng,
+    feature?.geometry
+  );
+
+}
+
+
+/* =========================================================
+   GOOGLE GEOJSON ПОДІЯ
+========================================================= */
+
+function eventContainsUser(
+  event
+) {
+
+  if (
+    !currentPosition
+  ) {
+
+    return false;
+
+  }
+
+
+  /*
+    Якщо подія має GeoJSON,
+    спочатку перевіряємо його.
+  */
+
+  if (
+    event.geojson
+  ) {
+
+    try {
+
+      const geo =
+        typeof event.geojson ===
+        "string"
+          ? JSON.parse(
+              event.geojson
+            )
+          : event.geojson;
 
 
       if (
-        predicted &&
-        Number.isFinite(
-          Number(predicted.lat)
-        ) &&
-        Number.isFinite(
-          Number(predicted.lon)
-        )
+        geo.type ===
+        "Feature"
       ) {
 
-        return [
-          Number(predicted.lat),
-          Number(predicted.lon)
-        ];
+        if (
+          featureContainsPoint(
+            geo,
+            currentPosition.lat,
+            currentPosition.lng
+          )
+        ) {
+
+          return true;
+
+        }
 
       }
 
+
+      if (
+        geo.type ===
+        "FeatureCollection"
+      ) {
+
+        if (
+          geo.features?.some(
+            feature =>
+              featureContainsPoint(
+                feature,
+                currentPosition.lat,
+                currentPosition.lng
+              )
+          )
+        ) {
+
+          return true;
+
+        }
+
+      }
+
+
+      if (
+        geo.type ===
+        "Polygon" ||
+        geo.type ===
+        "MultiPolygon"
+      ) {
+
+        if (
+          pointInGeometry(
+            currentPosition.lat,
+            currentPosition.lng,
+            geo
+          )
+        ) {
+
+          return true;
+
+        }
+
+      }
+
+    } catch (error) {
+
+      console.warn(
+        "GeoJSON parse error:",
+        error
+      );
+
     }
-
-  } catch (error) {
-
-    console.warn(
-      "NEPTUN predict error:",
-      error
-    );
 
   }
 
 
   /*
-   * Fallback
-   */
+    Якщо GeoJSON не спрацював —
+    перевіряємо radius.
+  */
+
+  const radius =
+    Number(
+      event.radius
+    );
+
 
   if (
-    Number.isFinite(
-      Number(threat?.lat)
-    ) &&
-    Number.isFinite(
-      Number(threat?.lon)
+    radius <= 0
+  ) {
+
+    return (
+      distanceMeters(
+        currentPosition.lat,
+        currentPosition.lng,
+        event.lat,
+        event.lng
+      ) <= 30
+    );
+
+  }
+
+
+  return (
+    distanceMeters(
+      currentPosition.lat,
+      currentPosition.lng,
+      event.lat,
+      event.lng
+    ) <= radius
+  );
+
+}
+
+
+/* =========================================================
+   GOOGLE EVENTS → ГОЛОВНА
+========================================================= */
+
+function updateLocalGoogleEvents() {
+
+  const inside =
+    googleEvents.filter(
+      event =>
+        eventContainsUser(event)
+    );
+
+
+  const next =
+    new Map();
+
+
+  inside.forEach(event => {
+
+    const key =
+      "sheet:" +
+      event.id;
+
+
+    next.set(
+      key,
+      {
+        key,
+        categoryId:
+          event.type,
+        event,
+        source:
+          "sheet"
+      }
+    );
+
+  });
+
+
+  detectLocalEventChanges(
+    next
+  );
+
+
+  activeLocalEvents =
+    next;
+
+
+  renderHomeStatus();
+
+}
+
+
+function detectLocalEventChanges(
+  next
+) {
+
+  /*
+    Вхід.
+  */
+
+  for (
+    const [
+      key,
+      item
+    ] of next
+  ) {
+
+    if (
+      !previousLocalEvents.has(key)
+    ) {
+
+      const category =
+        categories[
+          item.categoryId
+        ];
+
+
+      if (
+        category
+      ) {
+
+        announceEvent({
+
+          categoryId:
+            item.categoryId,
+
+          title:
+            category.emoji +
+            " " +
+            category.name,
+
+          text:
+            category.entryText,
+
+          eventKey:
+            key,
+
+          exit: false
+
+        });
+
+      }
+
+    }
+
+  }
+
+
+  /*
+    Вихід.
+  */
+
+  for (
+    const [
+      key,
+      oldItem
+    ] of previousLocalEvents
+  ) {
+
+    if (
+      !next.has(key)
+    ) {
+
+      const category =
+        categories[
+          oldItem.categoryId
+        ];
+
+
+      if (
+        category &&
+        category.hasExit
+      ) {
+
+        announceEvent({
+
+          categoryId:
+            oldItem.categoryId,
+
+          title:
+            "⚪ Відбій",
+
+          text:
+            category.exitText,
+
+          eventKey:
+            key +
+            ":exit",
+
+          exit: true
+
+        });
+
+      }
+
+    }
+
+  }
+
+
+  previousLocalEvents =
+    new Map(next);
+
+}
+
+
+/* =========================================================
+   ГОЛОВНА — СТАТУСИ
+========================================================= */
+
+function renderHomeStatus() {
+
+  const container =
+    document.getElementById(
+      "home-status"
+    );
+
+
+  const items =
+    Array.from(
+      activeLocalEvents.values()
+    );
+
+
+  if (
+    items.length === 0
+  ) {
+
+    container.innerHTML = `
+      <div class="empty-status">
+        <div style="font-size:32px;">
+          ✅
+        </div>
+
+        Небезпечних подій поруч немає
+      </div>
+    `;
+
+    return;
+
+  }
+
+
+  container.innerHTML = "";
+
+
+  items.forEach(item => {
+
+    const category =
+      categories[
+        item.categoryId
+      ];
+
+
+    const event =
+      item.event;
+
+
+    const card =
+      document.createElement(
+        "div"
+      );
+
+
+    card.className =
+      "status-card";
+
+
+    if (
+      item.categoryId === "1"
+    ) {
+
+      card.classList.add(
+        "danger"
+      );
+
+    } else {
+
+      card.classList.add(
+        "warning"
+      );
+
+    }
+
+
+    let extra =
+      "";
+
+
+    if (
+      event.village
+    ) {
+
+      extra =
+        `<div class="status-description">
+          📍 ${escapeHtml(event.village)}
+        </div>`;
+
+    }
+
+
+    if (
+      event.desc
+    ) {
+
+      extra +=
+        `<div class="status-description">
+          ${escapeHtml(event.desc)}
+        </div>`;
+
+    }
+
+
+    card.innerHTML = `
+
+      <div class="status-title">
+        ${category.emoji}
+        ${escapeHtml(category.name)}
+      </div>
+
+      ${extra}
+
+    `;
+
+
+    container.appendChild(
+      card
+    );
+
+  });
+
+}
+
+
+function escapeHtml(
+  value
+) {
+
+  return String(
+    value ?? ""
+  )
+    .replaceAll(
+      "&",
+      "&amp;"
+    )
+    .replaceAll(
+      "<",
+      "&lt;"
+    )
+    .replaceAll(
+      ">",
+      "&gt;"
+    )
+    .replaceAll(
+      '"',
+      "&quot;"
+    )
+    .replaceAll(
+      "'",
+      "&#039;"
+    );
+
+}
+
+
+/* =========================================================
+   NEPTUN GEOJSON
+========================================================= */
+
+async function loadNeptunGeometry() {
+
+  if (
+    raionsGeoJSON &&
+    oblastsGeoJSON
+  ) {
+
+    return;
+
+  }
+
+
+  if (
+    geometryLoadingPromise
+  ) {
+
+    return geometryLoadingPromise;
+
+  }
+
+
+  geometryLoadingPromise =
+    Promise.all([
+
+      fetch(
+        RAIONS_GEOJSON_URL,
+        {
+          cache: "force-cache"
+        }
+      )
+        .then(
+          response => {
+
+            if (
+              !response.ok
+            ) {
+
+              throw new Error(
+                "Raions HTTP " +
+                response.status
+              );
+
+            }
+
+            return response.json();
+
+          }
+        ),
+
+      fetch(
+        OBLASTS_GEOJSON_URL,
+        {
+          cache: "force-cache"
+        }
+      )
+        .then(
+          response => {
+
+            if (
+              !response.ok
+            ) {
+
+              throw new Error(
+                "Oblasts HTTP " +
+                response.status
+              );
+
+            }
+
+            return response.json();
+
+          }
+        )
+
+    ])
+      .then(
+        ([raions, oblasts]) => {
+
+          raionsGeoJSON =
+            raions;
+
+          oblastsGeoJSON =
+            oblasts;
+
+        }
+      )
+      .catch(
+        error => {
+
+          console.error(
+            "NEPTUN geometry error:",
+            error
+          );
+
+          /*
+            Не блокуємо подальші спроби.
+          */
+
+          raionsGeoJSON =
+            null;
+
+          oblastsGeoJSON =
+            null;
+
+        }
+      )
+      .finally(
+        () => {
+
+          geometryLoadingPromise =
+            null;
+
+        }
+      );
+
+
+  return geometryLoadingPromise;
+
+}
+
+
+/* =========================================================
+   ПОШУК FEATURE ЗА NEPTUN KEY
+========================================================= */
+
+function findFeatureByKey(
+  geojson,
+  key
+) {
+
+  if (
+    !geojson ||
+    !Array.isArray(
+      geojson.features
     )
   ) {
 
-    return [
-      Number(threat.lat),
-      Number(threat.lon)
+    return null;
+
+  }
+
+
+  const target =
+    String(
+      key
+    ).toLowerCase();
+
+
+  for (
+    const feature of
+    geojson.features
+  ) {
+
+    const props =
+      feature.properties ||
+      {};
+
+
+    const possibleKeys = [
+
+      props.key,
+
+      props.id,
+
+      props.code,
+
+      props.KEY,
+
+      props.KOD,
+
+      props["hc-key"],
+
+      props["HASC_2"],
+
+      props["HASC_1"]
+
     ];
+
+
+    if (
+      possibleKeys.some(
+        value =>
+          value !== undefined &&
+          String(value)
+            .toLowerCase() ===
+          target
+      )
+    ) {
+
+      return feature;
+
+    }
 
   }
 
@@ -2060,173 +3467,367 @@ function getThreatPosition(
 
 
 /* =========================================================
-   THREAT TITLE
+   NEPTUN ALERT → GPS
 ========================================================= */
 
-function getThreatTitle(
-  threat
-) {
+function getNeptunInsideKeys() {
 
-  const type =
-    normalizeType(
-      threat?.type
-    );
-
-
-  if (type === "uav") {
-
-    return "✈️ Шахед / БпЛА";
-
-  }
+  const result =
+    new Set();
 
 
   if (
-    threat?.title
+    !currentPosition
   ) {
 
-    return String(
-      threat.title
-    );
+    return result;
 
   }
 
 
-  if (
-    threat?.name
+  /*
+    Райони.
+  */
+
+  for (
+    const alert of
+    neptunAlertsState.raions
   ) {
 
-    return String(
-      threat.name
-    );
-
-  }
+    const key =
+      alert?.key;
 
 
-  return "✈️ Повітряна загроза";
-
-}
-
-
-/* =========================================================
-   RENDER NEPTUN THREATS
-========================================================= */
-
-function renderNeptunThreats() {
-
-  neptunThreatLayerGroup.clearLayers();
+    if (!key) {
+      continue;
+    }
 
 
-  neptunThreats.forEach(
-    threat => {
-
-      /*
-       * areaOnly = true
-       *
-       * Не показуємо centroid
-       * як реальне місце загрози.
-       */
-
-      if (
-        threat?.areaOnly === true
-      ) {
-
-        return;
-
-      }
-
-
-      const position =
-        getThreatPosition(
-          threat
-        );
-
-      if (!position) {
-        return;
-      }
-
-
-      const category =
-        getNeptunThreatCategory(
-          threat
-        );
-
-
-      /*
-       * Шахед = категорія 2
-       */
-
-      if (
-        category !==
-        NEPTUN_CATEGORY_UAV
-      ) {
-
-        return;
-
-      }
-
-
-      const marker =
-        L.marker(
-          position,
-          {
-            icon:
-              createNeptunThreatIcon(
-                threat.type
-              )
-          }
-        );
-
-
-      marker.bindPopup(
-        `
-        <b>
-          ${getThreatTitle(threat)}
-        </b>
-
-        <br><br>
-
-        Будьте обережні та залишайтеся в безпеці!
-
-        ${
-          threat.advisory
-            ? `
-              <br><br>
-              ⚠️ Спостереження
-              (advisory)
-            `
-            : ""
-        }
-
-        <br><br>від NEPTUN
-        `
+    const feature =
+      findFeatureByKey(
+        raionsGeoJSON,
+        key
       );
 
 
-      marker._category =
-        NEPTUN_CATEGORY_UAV;
+    if (
+      feature &&
+      featureContainsPoint(
+        feature,
+        currentPosition.lat,
+        currentPosition.lng
+      )
+    ) {
 
-      marker._neptunThreat =
-        true;
-
-
-      marker.addTo(
-        neptunThreatLayerGroup
+      result.add(
+        "raion:" +
+        key
       );
 
     }
-  );
+
+  }
 
 
-  updateVisibility();
+  /*
+    Області.
+  */
+
+  for (
+    const alert of
+    neptunAlertsState.oblasts
+  ) {
+
+    const key =
+      alert?.key;
+
+
+    if (!key) {
+      continue;
+    }
+
+
+    const feature =
+      findFeatureByKey(
+        oblastsGeoJSON,
+        key
+      );
+
+
+    if (
+      feature &&
+      featureContainsPoint(
+        feature,
+        currentPosition.lat,
+        currentPosition.lng
+      )
+    ) {
+
+      result.add(
+        "oblast:" +
+        key
+      );
+
+    }
+
+  }
+
+
+  return result;
 
 }
 
 
 /* =========================================================
-   LOAD NEPTUN ALERTS REST
+   NEPTUN — ОНОВЛЕННЯ СТАНУ
 ========================================================= */
 
-async function loadNeptunAlerts() {
+async function processNeptunAlerts(
+  payload
+) {
+
+  if (!payload) {
+    return;
+  }
+
+
+  const raions =
+    Array.isArray(
+      payload.raions
+    )
+      ? payload.raions
+      : [];
+
+
+  const oblasts =
+    Array.isArray(
+      payload.oblasts
+    )
+      ? payload.oblasts
+      : [];
+
+
+  neptunAlertsState = {
+
+    raions,
+
+    oblasts
+
+  };
+
+
+  const home =
+    document.getElementById(
+      "neptun-home-status"
+    );
+
+
+  if (
+    raions.length === 0 &&
+    oblasts.length === 0
+  ) {
+
+    home.innerHTML = `
+      <div
+        style="
+          color:#55d879;
+          font-weight:700;
+        "
+      >
+        🟢 Активних тривог за даними NEPTUN немає.
+      </div>
+    `;
+
+  } else {
+
+    home.innerHTML = `
+      <div
+        style="
+          color:#ff6b6b;
+          font-weight:700;
+        "
+      >
+        🔴 Є активні повітряні тривоги.
+      </div>
+
+      <div
+        style="
+          color:#999;
+          margin-top:6px;
+          font-size:13px;
+        "
+      >
+        Районів: ${raions.length}
+        · Областей: ${oblasts.length}
+      </div>
+    `;
+
+  }
+
+
+  /*
+    Геометрія потрібна тільки коли
+    є GPS і активні тривоги.
+  */
+
+  if (
+    currentPosition &&
+    (
+      raions.length > 0 ||
+      oblasts.length > 0
+    )
+  ) {
+
+    await loadNeptunGeometry();
+
+    updateNeptunInsideStatus();
+
+  } else {
+
+    updateNeptunInsideStatus();
+
+  }
+
+}
+
+
+/* =========================================================
+   NEPTUN — ПЕРЕВІРКА GPS
+========================================================= */
+
+function updateNeptunInsideStatus() {
+
+  const inside =
+    getNeptunInsideKeys();
+
+
+  const previous =
+    previousNeptunInside;
+
+
+  /*
+    НОВА ТРИВОГА
+  */
+
+  for (
+    const key of inside
+  ) {
+
+    if (
+      !previous.has(key)
+    ) {
+
+      announceEvent({
+
+        categoryId: "1",
+
+        title:
+          "🔴 Повітряна тривога",
+
+        text:
+          categories["1"].entryText,
+
+        eventKey:
+          "neptun:" +
+          key,
+
+        exit: false
+
+      });
+
+    }
+
+  }
+
+
+  /*
+    ВІДБІЙ
+  */
+
+  for (
+    const key of previous
+  ) {
+
+    if (
+      !inside.has(key)
+    ) {
+
+      announceEvent({
+
+        categoryId: "1",
+
+        title:
+          "⚪ Відбій",
+
+        text:
+          categories["1"].exitText,
+
+        eventKey:
+          "neptun:" +
+          key +
+          ":exit",
+
+        exit: true
+
+      });
+
+    }
+
+  }
+
+
+  previousNeptunInside =
+    new Set(inside);
+
+
+  /*
+    Оновлюємо локальний статус
+    повітряної тривоги.
+  */
+
+  const container =
+    document.getElementById(
+      "neptun-home-status"
+    );
+
+
+  if (
+    inside.size > 0
+  ) {
+
+    container.innerHTML = `
+      <div
+        style="
+          color:#ff4444;
+          font-size:18px;
+          font-weight:700;
+        "
+      >
+        🔴 ВИ В ЗОНІ ПОВІТРЯНОЇ ТРИВОГИ
+      </div>
+
+      <div
+        style="
+          color:#aaa;
+          margin-top:7px;
+          font-size:13px;
+        "
+      >
+        NEPTUN визначив активну тривогу
+        у вашій області або районі.
+      </div>
+    `;
+
+  }
+
+}
+
+
+/* =========================================================
+   NEPTUN REST
+========================================================= */
+
+async function fetchNeptunAlerts() {
 
   try {
 
@@ -2236,6 +3837,7 @@ async function loadNeptunAlerts() {
         "?t=" +
         Date.now(),
         {
+          method: "GET",
           cache: "no-store"
         }
       );
@@ -2244,7 +3846,7 @@ async function loadNeptunAlerts() {
     if (!response.ok) {
 
       throw new Error(
-        "HTTP " +
+        "NEPTUN HTTP " +
         response.status
       );
 
@@ -2255,53 +3857,15 @@ async function loadNeptunAlerts() {
       await response.json();
 
 
-    /*
-     * Райони
-     */
-
-    neptunAlerts =
-      Array.isArray(
-        data?.raions
-      )
-        ? data.raions
-        : [];
-
-
-    /*
-     * Області
-     */
-
-    neptunAlertOblasts =
-      Array.isArray(
-        data?.oblasts
-      )
-        ? data.oblasts
-        : [];
-
-
-    console.log(
-      "NEPTUN райони:",
-      neptunAlerts
+    await processNeptunAlerts(
+      data
     );
 
-    console.log(
-      "NEPTUN області:",
-      neptunAlertOblasts
-    );
-
-
-    renderAlertZones();
-
-    updateAlertBadge();
-
-    updateCategoryCounts();
-
-    updateStatus();
 
   } catch (error) {
 
-    console.error(
-      "NEPTUN alerts:",
+    console.warn(
+      "NEPTUN REST error:",
       error
     );
 
@@ -2311,312 +3875,140 @@ async function loadNeptunAlerts() {
 
 
 /* =========================================================
-   LOAD NEPTUN THREATS REST
+   NEPTUN SDK / WEBSOCKET
 ========================================================= */
-
-async function loadNeptunThreats() {
-
-  try {
-
-    const response =
-      await fetch(
-        NEPTUN_THREATS_URL +
-        "?t=" +
-        Date.now(),
-        {
-          cache: "no-store"
-        }
-      );
-
-
-    if (!response.ok) {
-
-      throw new Error(
-        "HTTP " +
-        response.status
-      );
-
-    }
-
-
-    const data =
-      await response.json();
-
-
-    /*
-     * API може повернути:
-     *
-     * масив
-     * або { threats: [] }
-     */
-
-    if (
-      Array.isArray(data)
-    ) {
-
-      neptunThreats =
-        data;
-
-    } else if (
-      Array.isArray(
-        data?.threats
-      )
-    ) {
-
-      neptunThreats =
-        data.threats;
-
-    } else {
-
-      neptunThreats =
-        [];
-
-    }
-
-
-    renderNeptunThreats();
-
-    updateCategoryCounts();
-
-    updateStatus();
-
-  } catch (error) {
-
-    console.error(
-      "NEPTUN threats:",
-      error
-    );
-
-  }
-
-}
-
-
-/* =========================================================
-   ALERT BADGE
-========================================================= */
-
-function updateAlertBadge() {
-
-  const badge =
-    document.getElementById(
-      "alertBadge"
-    );
-
-
-  /*
-   * alertBadge зараз закоментований.
-   *
-   * Якщо його немає — просто виходимо.
-   */
-
-  if (!badge) {
-    return;
-  }
-
-
-  const hasAlerts =
-    neptunAlerts.length > 0 ||
-    neptunAlertOblasts.length > 0;
-
-
-  if (hasAlerts) {
-
-    badge.style.display =
-      "block";
-
-  } else {
-
-    badge.style.display =
-      "none";
-
-  }
-
-}
-
-
-/* =========================================================
-   STATUS
-========================================================= */
-
-function updateStatus() {
-
-  const status =
-    document.getElementById(
-      "status"
-    );
-
-
-  const alerts =
-    neptunAlerts.length +
-    neptunAlertOblasts.length;
-
-
-  const uavs =
-    neptunThreats.filter(
-      threat =>
-        getNeptunThreatCategory(
-          threat
-        ) ===
-        NEPTUN_CATEGORY_UAV
-    ).length;
-
-
-  const news =
-    sheetObjects.filter(
-      obj =>
-        getSheetCategory(obj) ===
-        "13"
-    ).length;
-
-
-  status.innerHTML =
-    `
-      Google Sheets:
-      ${sheetObjects.length}
-
-      <br>
-
-      📰 Новин:
-      ${news}
-
-      <br>
-
-      NEPTUN тривог:
-      ${alerts}
-
-      <br>
-
-      NEPTUN БпЛА:
-      ${uavs}
-    `;
-
-}
-
-
-/* =========================================================
-   NEPTUN REALTIME
-========================================================= */
-
-let neptunRealtimeClient =
-  null;
-
 
 function startNeptunRealtime() {
 
-  try {
+  if (
+    neptunStarted
+  ) {
 
-    if (
-      !window.NEPTUN ||
-      typeof NEPTUN.RealtimeClient !==
-        "function"
-    ) {
+    return;
 
-      console.warn(
-        "NEPTUN RealtimeClient недоступний"
-      );
-
-      return;
-
-    }
+  }
 
 
-    neptunRealtimeClient =
-      new NEPTUN.RealtimeClient(
-        NEPTUN_URL
-      );
+  neptunStarted =
+    true;
 
 
-    neptunRealtimeClient.subscribe(
-      snapshot => {
+  /*
+    SDK є основним каналом.
+  */
 
-        console.log(
-          "NEPTUN realtime snapshot:",
-          snapshot
+  if (
+    window.NEPTUN &&
+    typeof
+      window.NEPTUN.RealtimeClient ===
+      "function"
+  ) {
+
+    try {
+
+      neptunClient =
+        new NEPTUN.RealtimeClient(
+          NEPTUN_URL
         );
 
 
-        /*
-         * Загрози
-         */
+      neptunClient.subscribe(
+        snapshot => {
 
-        if (
-          Array.isArray(
-            snapshot?.threats
-          )
-        ) {
-
-          neptunThreats =
-            snapshot.threats;
-
-          renderNeptunThreats();
-
-        }
+          if (!snapshot) {
+            return;
+          }
 
 
-        /*
-         * Районні тривоги
-         *
-         * КАТЕГОРІЯ 1
-         */
+          /*
+            SDK документує:
+            snap.alerts / snap.alertOblasts.
+          */
 
-        if (
-          Array.isArray(
-            snapshot?.alerts
-          )
-        ) {
-
-          neptunAlerts =
-            snapshot.alerts;
-
-        }
+          const raions =
+            Array.isArray(
+              snapshot.alerts
+            )
+              ? snapshot.alerts
+              : [];
 
 
-        /*
-         * Обласні тривоги
-         *
-         * КАТЕГОРІЯ 1
-         */
+          const oblasts =
+            Array.isArray(
+              snapshot.alertOblasts
+            )
+              ? snapshot.alertOblasts
+              : [];
 
-        if (
-          Array.isArray(
-            snapshot?.alertOblasts
-          )
-        ) {
 
-          neptunAlertOblasts =
-            snapshot.alertOblasts;
+          processNeptunAlerts({
+            raions,
+            oblasts
+          });
 
         }
+      );
 
 
-        /*
-         * Оновлюємо червоні зони
-         */
+      neptunClient.start();
 
-        renderAlertZones();
 
-        updateAlertBadge();
+    } catch (error) {
 
-        updateCategoryCounts();
+      console.error(
+        "NEPTUN SDK error:",
+        error
+      );
 
-        updateStatus();
+    }
 
-      }
+  }
+
+
+  /*
+    REST-фолбек.
+
+    5 секунд — мінімальний інтервал,
+    рекомендований NEPTUN.
+  */
+
+  fetchNeptunAlerts();
+
+
+  neptunRestTimer =
+    setInterval(
+      fetchNeptunAlerts,
+      5000
     );
 
+}
 
-    neptunRealtimeClient.start();
+
+/* =========================================================
+   SERVICE WORKER
+========================================================= */
+
+async function registerServiceWorker() {
+
+  if (
+    !("serviceWorker" in navigator)
+  ) {
+
+    return;
+
+  }
 
 
-    console.log(
-      "NEPTUN realtime запущено"
+  try {
+
+    await navigator.serviceWorker.register(
+      "./sw.js"
     );
 
   } catch (error) {
 
-    console.error(
-      "NEPTUN realtime:",
+    console.warn(
+      "Service Worker registration error:",
       error
     );
 
@@ -2626,121 +4018,117 @@ function startNeptunRealtime() {
 
 
 /* =========================================================
-   MAP ZOOM
+   АВТОМАТИЧНИЙ ЗАПУСК
 ========================================================= */
 
-map.on(
-  "zoomend",
-  function() {
+async function initApp() {
 
-    renderNeptunThreats();
+  renderSettings();
 
-  }
-);
+  await registerServiceWorker();
 
 
-/* =========================================================
-   RESIZE
-========================================================= */
+  /*
+    Спроба отримати дозвіл автоматично.
 
-window.addEventListener(
-  "resize",
-  function() {
+    Якщо браузер вимагає user gesture,
+    він просто залишить permission
+    без зміни — застосунок при цьому
+    не падає.
+  */
 
-    /*
-     * Якщо перейшли з телефона
-     * на великий екран —
-     * прибираємо mobile-open клас.
-     */
+  if (
+    settings.notifications
+  ) {
 
-    if (
-      window.innerWidth > 600
-    ) {
+    try {
 
-      panel.classList.remove(
-        "panel-open"
+      await requestNotificationPermission();
+
+    } catch (error) {
+
+      console.warn(
+        "Notification permission:",
+        error
       );
-
-      panelToggle.textContent =
-        "☰";
 
     }
 
   }
-);
-
-
-/* =========================================================
-   INITIALIZATION
-========================================================= */
-
-async function init() {
-
-  createCategoryPanel();
 
 
   /*
-   * Завантажуємо межі України
-   */
+    GPS.
+  */
 
-  await loadNeptunGeoJSON();
+  if (
+    settings.gps
+  ) {
 
+    startGPS();
 
-  /*
-   * Google Sheets
-   */
-
-  await loadSheetData();
-
-
-  /*
-   * NEPTUN REST
-   */
-
-  await loadNeptunAlerts();
-
-  await loadNeptunThreats();
+  }
 
 
   /*
-   * NEPTUN realtime
-   */
+    Google Sheets.
+  */
+
+  await fetchGoogleEvents();
+
+
+  sheetRefreshTimer =
+    setInterval(
+      fetchGoogleEvents,
+      10000
+    );
+
+
+  /*
+    NEPTUN.
+  */
 
   startNeptunRealtime();
 
 
   /*
-   * Періодичне резервне оновлення
-   */
+    Якщо користувач повернувся
+    на вкладку — одразу перевіряємо
+    все ще раз.
+  */
 
-  setInterval(
-    loadSheetData,
-    10000
+  document.addEventListener(
+    "visibilitychange",
+    () => {
+
+      if (
+        document.visibilityState ===
+        "visible"
+      ) {
+
+        if (
+          settings.gps &&
+          !gpsStarted
+        ) {
+
+          startGPS();
+
+        }
+
+
+        fetchGoogleEvents();
+
+        fetchNeptunAlerts();
+
+      }
+
+    }
   );
-
-
-  setInterval(
-    loadNeptunAlerts,
-    5000
-  );
-
-
-  setInterval(
-    loadNeptunThreats,
-    5000
-  );
-
-
-  updateVisibility();
 
 }
 
 
-/* =========================================================
-   START
-========================================================= */
-
-init();
+initApp();
 
 </script>
 
