@@ -479,6 +479,14 @@
     <div class="card">
       <div class="card-title">📍 Статус біля вас</div>
 
+      <div
+        id="data-status"
+        class="location-status"
+        style="margin-top:0;margin-bottom:10px;"
+      >
+        Перевірка даних…
+      </div>
+
       <div id="home-status">
         <div class="loading">
           Отримання вашого місцезнаходження…
@@ -1140,7 +1148,32 @@ let previousNeptunInside =
   new Set();
 
 
+
+
 /* =========================================================
+   ЛОКАЛЬНІ ДАНІ / OFFLINE
+========================================================= */
+
+const LOCAL_DATA_KEYS = {
+  google: "mapaPodiyGoogleEventsCache",
+  neptun: "mapaPodiyNeptunCache",
+  meta: "mapaPodiyDataMeta"
+};
+
+let dataMeta = {
+  googleUpdatedAt: 0,
+  neptunUpdatedAt: 0
+};
+
+let offlineMode =
+  !navigator.onLine;
+
+let cacheInitialized =
+  false;
+
+
+/* =========================================================
+   /* =========================================================
    НАВІГАЦІЯ
 ========================================================= */
 
@@ -2196,6 +2229,436 @@ async function announceEvent({
 
 
 /* =========================================================
+   ЛОКАЛЬНІ ДАНІ / OFFLINE
+========================================================= */
+
+function formatDataTime(timestamp) {
+
+  if (!timestamp) {
+    return "";
+  }
+
+  const date =
+    new Date(timestamp);
+
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  return date.toLocaleTimeString(
+    "uk-UA",
+    {
+      hour: "2-digit",
+      minute: "2-digit"
+    }
+  );
+
+}
+
+
+function getLatestDataTimestamp() {
+
+  const values = [
+    Number(dataMeta.googleUpdatedAt) || 0,
+    Number(dataMeta.neptunUpdatedAt) || 0
+  ].filter(Boolean);
+
+  return values.length
+    ? Math.max(...values)
+    : 0;
+
+}
+
+
+function updateDataStatus() {
+
+  const element =
+    document.getElementById(
+      "data-status"
+    );
+
+  if (!element) {
+    return;
+  }
+
+  const latest =
+    getLatestDataTimestamp();
+
+  if (offlineMode) {
+
+    element.textContent =
+      latest
+        ? "Офлайн — використовуються останні дані. Дані оновлено: " +
+          formatDataTime(latest)
+        : "Офлайн — локальних даних ще немає.";
+
+    element.className =
+      "location-status error";
+
+    return;
+  }
+
+  if (latest) {
+
+    element.textContent =
+      "Дані оновлено: " +
+      formatDataTime(latest);
+
+    element.className =
+      "location-status ok";
+
+    return;
+  }
+
+  element.textContent =
+    "Очікування першого оновлення даних…";
+
+  element.className =
+    "location-status";
+
+}
+
+
+function saveDataMeta() {
+
+  try {
+
+    localStorage.setItem(
+      LOCAL_DATA_KEYS.meta,
+      JSON.stringify(dataMeta)
+    );
+
+  } catch (error) {
+
+    console.warn(
+      "Не вдалося зберегти час оновлення:",
+      error
+    );
+
+  }
+
+  updateDataStatus();
+
+}
+
+
+function loadDataMeta() {
+
+  try {
+
+    const raw =
+      localStorage.getItem(
+        LOCAL_DATA_KEYS.meta
+      );
+
+    if (!raw) {
+      return;
+    }
+
+    const parsed =
+      JSON.parse(raw);
+
+    if (
+      parsed &&
+      typeof parsed === "object"
+    ) {
+
+      dataMeta = {
+        googleUpdatedAt:
+          Number(parsed.googleUpdatedAt) || 0,
+
+        neptunUpdatedAt:
+          Number(parsed.neptunUpdatedAt) || 0
+      };
+
+    }
+
+  } catch (error) {
+
+    console.warn(
+      "Не вдалося завантажити час оновлення:",
+      error
+    );
+
+  }
+
+}
+
+
+function saveGoogleEventsCache() {
+
+  try {
+
+    localStorage.setItem(
+      LOCAL_DATA_KEYS.google,
+      JSON.stringify(googleEvents)
+    );
+
+    dataMeta.googleUpdatedAt =
+      Date.now();
+
+    saveDataMeta();
+
+  } catch (error) {
+
+    console.warn(
+      "Не вдалося зберегти Google дані локально:",
+      error
+    );
+
+  }
+
+}
+
+
+function loadGoogleEventsCache() {
+
+  try {
+
+    const raw =
+      localStorage.getItem(
+        LOCAL_DATA_KEYS.google
+      );
+
+    if (!raw) {
+      return false;
+    }
+
+    const parsed =
+      JSON.parse(raw);
+
+    if (!Array.isArray(parsed)) {
+      return false;
+    }
+
+    googleEvents =
+      parsed
+        .map(normalizeGoogleEvent)
+        .filter(Boolean);
+
+    /*
+      Кеш не вважаємо новою подією.
+      Старі події не повинні повторно
+      озвучуватися після перезапуску.
+    */
+    updateLocalGoogleEvents({
+      silent: true
+    });
+
+    return true;
+
+  } catch (error) {
+
+    console.warn(
+      "Не вдалося завантажити Google кеш:",
+      error
+    );
+
+    return false;
+
+  }
+
+}
+
+
+function saveNeptunCache() {
+
+  try {
+
+    localStorage.setItem(
+      LOCAL_DATA_KEYS.neptun,
+      JSON.stringify({
+        raions:
+          neptunAlertsState.raions || [],
+
+        oblasts:
+          neptunAlertsState.oblasts || []
+      })
+    );
+
+    dataMeta.neptunUpdatedAt =
+      Date.now();
+
+    saveDataMeta();
+
+  } catch (error) {
+
+    console.warn(
+      "Не вдалося зберегти NEPTUN дані локально:",
+      error
+    );
+
+  }
+
+}
+
+
+async function loadNeptunCache() {
+
+  try {
+
+    const raw =
+      localStorage.getItem(
+        LOCAL_DATA_KEYS.neptun
+      );
+
+    if (!raw) {
+      return false;
+    }
+
+    const parsed =
+      JSON.parse(raw);
+
+    if (
+      !parsed ||
+      typeof parsed !== "object"
+    ) {
+      return false;
+    }
+
+    await processNeptunAlerts(
+      {
+        raions:
+          Array.isArray(parsed.raions)
+            ? parsed.raions
+            : [],
+
+        oblasts:
+          Array.isArray(parsed.oblasts)
+            ? parsed.oblasts
+            : []
+      },
+      {
+        persist: false,
+        silent: true
+      }
+    );
+
+    return true;
+
+  } catch (error) {
+
+    console.warn(
+      "Не вдалося завантажити NEPTUN кеш:",
+      error
+    );
+
+    return false;
+
+  }
+
+}
+
+
+async function loadLocalData() {
+
+  loadDataMeta();
+
+  const googleLoaded =
+    loadGoogleEventsCache();
+
+  const neptunLoaded =
+    await loadNeptunCache();
+
+  cacheInitialized =
+    googleLoaded ||
+    neptunLoaded;
+
+  updateDataStatus();
+
+  return cacheInitialized;
+
+}
+
+
+function setNetworkState(
+  isOnline
+) {
+
+  offlineMode =
+    !isOnline;
+
+  updateDataStatus();
+
+}
+
+
+function clearLocalDataCache() {
+
+  try {
+
+    localStorage.removeItem(
+      LOCAL_DATA_KEYS.google
+    );
+
+    localStorage.removeItem(
+      LOCAL_DATA_KEYS.neptun
+    );
+
+    localStorage.removeItem(
+      LOCAL_DATA_KEYS.meta
+    );
+
+    dataMeta = {
+      googleUpdatedAt: 0,
+      neptunUpdatedAt: 0
+    };
+
+    updateDataStatus();
+
+    showToast(
+      "Локальні дані очищено.",
+      "success"
+    );
+
+  } catch (error) {
+
+    console.warn(
+      "Не вдалося очистити локальні дані:",
+      error
+    );
+
+  }
+
+}
+
+
+window.addEventListener(
+  "online",
+  () => {
+
+    setNetworkState(true);
+
+    showToast(
+      "Інтернет відновлено. Оновлюємо дані…",
+      "success"
+    );
+
+    updateDataStatus();
+
+        fetchGoogleEvents();
+        fetchNeptunAlerts();
+
+  }
+);
+
+
+window.addEventListener(
+  "offline",
+  () => {
+
+    setNetworkState(false);
+
+    showToast(
+      "Офлайн — використовуються останні збережені дані.",
+      "error"
+    );
+
+  }
+);
+
+
+/* =========================================================
    GOOGLE SHEETS API
 ========================================================= */
 
@@ -2213,7 +2676,6 @@ async function fetchGoogleEvents() {
         }
       );
 
-
     if (!response.ok) {
 
       throw new Error(
@@ -2223,10 +2685,8 @@ async function fetchGoogleEvents() {
 
     }
 
-
     const data =
       await response.json();
-
 
     if (
       !Array.isArray(data)
@@ -2238,15 +2698,16 @@ async function fetchGoogleEvents() {
 
     }
 
-
     googleEvents =
       data
         .map(normalizeGoogleEvent)
         .filter(Boolean);
 
+    saveGoogleEventsCache();
+
+    setNetworkState(true);
 
     updateLocalGoogleEvents();
-
 
   } catch (error) {
 
@@ -2254,6 +2715,10 @@ async function fetchGoogleEvents() {
       "Google API error:",
       error
     );
+
+    if (!navigator.onLine) {
+      setNetworkState(false);
+    }
 
   }
 
@@ -2939,7 +3404,12 @@ function eventContainsUser(
    GOOGLE EVENTS → ГОЛОВНА
 ========================================================= */
 
-function updateLocalGoogleEvents() {
+function updateLocalGoogleEvents(
+  options = {}
+) {
+
+  const silent =
+    options.silent === true;
 
   const inside =
     googleEvents.filter(
@@ -2975,7 +3445,10 @@ function updateLocalGoogleEvents() {
 
 
   detectLocalEventChanges(
-    next
+    next,
+    {
+      silent
+    }
   );
 
 
@@ -2989,8 +3462,12 @@ function updateLocalGoogleEvents() {
 
 
 function detectLocalEventChanges(
-  next
+  next,
+  options = {}
 ) {
+
+  const silent =
+    options.silent === true;
 
   /*
     Вхід.
@@ -3014,7 +3491,8 @@ function detectLocalEventChanges(
 
 
       if (
-        category
+        category &&
+        !silent
       ) {
 
         announceEvent({
@@ -3067,7 +3545,8 @@ function detectLocalEventChanges(
 
       if (
         category &&
-        category.hasExit
+        category.hasExit &&
+        !silent
       ) {
 
         announceEvent({
@@ -3583,8 +4062,15 @@ function getNeptunInsideKeys() {
 ========================================================= */
 
 async function processNeptunAlerts(
-  payload
+  payload,
+  options = {}
 ) {
+
+  const persist =
+    options.persist !== false;
+
+  const silent =
+    options.silent === true;
 
   if (!payload) {
     return;
@@ -3614,6 +4100,14 @@ async function processNeptunAlerts(
     oblasts
 
   };
+
+  if (persist) {
+
+    saveNeptunCache();
+
+    setNetworkState(true);
+
+  }
 
 
   const home =
@@ -3714,6 +4208,7 @@ function updateNeptunInsideStatus() {
   ) {
 
     if (
+      !silent &&
       !previous.has(key)
     ) {
 
@@ -3749,6 +4244,7 @@ function updateNeptunInsideStatus() {
   ) {
 
     if (
+      !silent &&
       !inside.has(key)
     ) {
 
@@ -3869,7 +4365,12 @@ async function fetchNeptunAlerts() {
       error
     );
 
-  }
+  
+    if (!navigator.onLine) {
+      setNetworkState(false);
+    }
+
+}
 
 }
 
@@ -4025,6 +4526,9 @@ async function initApp() {
 
   renderSettings();
 
+  loadDataMeta();
+  updateDataStatus();
+
   await registerServiceWorker();
 
 
@@ -4071,6 +4575,14 @@ async function initApp() {
 
 
   /*
+    Спочатку завантажуємо останні
+    успішно перевірені дані з localStorage.
+    Це дозволяє працювати навіть без інтернету.
+  */
+
+  await loadLocalData();
+
+  /*
     Google Sheets.
   */
 
@@ -4089,6 +4601,16 @@ async function initApp() {
   */
 
   startNeptunRealtime();
+
+
+  /*
+    Оновлюємо напис часу,
+    не змінюючи самі дані.
+  */
+  setInterval(
+    updateDataStatus,
+    30000
+  );
 
 
   /*
