@@ -1,6 +1,63 @@
-const CACHE_NAME =
-  "mapa-podiy-ua-v1";
+"use strict";
 
+/*
+ * ================================================================
+ * МапаПодійUA — Service Worker
+ * ================================================================
+ *
+ * Структура:
+ *
+ * MapDoUA/
+ * ├── app.html
+ * ├── map.html
+ * ├── manifest.json
+ * ├── sw.js
+ * │
+ * ├── Sound/
+ * │   ├── alarm.mp3
+ * │   ├── fire.mp3
+ * │   ├── police.mp3
+ * │   ├── accident.mp3
+ * │   ├── simple.mp3
+ * │   ├── ambulance.mp3
+ * │   ├── funeral.mp3
+ * │   └── power.mp3
+ * │
+ * └── Voice/
+ *     ├── alarm-entry.mp3
+ *     ├── alarm-exit.mp3
+ *     ├── fire-entry.mp3
+ *     ├── fire-exit.mp3
+ *     ├── police-entry.mp3
+ *     ├── police-exit.mp3
+ *     ├── accident-entry.mp3
+ *     ├── simple-entry.mp3
+ *     ├── ambulance-entry.mp3
+ *     ├── funeral-entry.mp3
+ *     ├── power-entry.mp3
+ *     └── power-exit.mp3
+ *
+ * ================================================================
+ */
+
+
+/* ================================================================
+   CACHE VERSION
+   ================================================================ */
+
+const CACHE_VERSION =
+  "mapa-podiy-ua-v3";
+
+const APP_CACHE =
+  CACHE_VERSION + "-app";
+
+const MEDIA_CACHE =
+  CACHE_VERSION + "-media";
+
+
+/* ================================================================
+   ОСНОВНІ ФАЙЛИ
+   ================================================================ */
 
 const APP_FILES = [
 
@@ -10,36 +67,14 @@ const APP_FILES = [
 
   "./map.html",
 
-  "./manifest.json",
-
-  "./offline.html",
-
-  "./icons/icon-192.png",
-
-  "./icons/icon-512.png",
-
-  "./Sound/alarm.mp3",
-
-  "./Sound/fire.mp3",
-
-  "./Sound/police.mp3",
-
-  "./Sound/accident.mp3",
-
-  "./Sound/simple.mp3",
-
-  "./Sound/ambulance.mp3",
-
-  "./Sound/funeral.mp3",
-
-  "./Sound/power.mp3"
+  "./manifest.json"
 
 ];
 
 
-/* =========================================================
+/* ================================================================
    INSTALL
-========================================================= */
+   ================================================================ */
 
 self.addEventListener(
   "install",
@@ -47,36 +82,63 @@ self.addEventListener(
 
     event.waitUntil(
 
-      caches
-        .open(CACHE_NAME)
-        .then(
-          cache =>
-            cache.addAll(
-              APP_FILES
-            )
-        )
-        .catch(
-          error => {
+      caches.open(
+        APP_CACHE
+      )
+      .then(
+        async cache => {
 
-            console.warn(
-              "Cache install error:",
-              error
-            );
+          /*
+           * Кешуємо файли ПО ОДНОМУ.
+           *
+           * Це важливо:
+           * якщо один файл відсутній,
+           * Service Worker все одно встановиться.
+           */
+
+          for (
+            const file
+            of APP_FILES
+          ) {
+
+            try {
+
+              await cache.add(
+                file
+              );
+
+              console.log(
+                "[SW] Cached:",
+                file
+              );
+
+            } catch (error) {
+
+              console.warn(
+                "[SW] Не вдалося закешувати:",
+                file,
+                error
+              );
+
+            }
 
           }
-        )
+
+        }
+      )
+      .then(
+        () => self.skipWaiting()
+      )
 
     );
-
-    self.skipWaiting();
 
   }
 );
 
 
-/* =========================================================
+/* ================================================================
    ACTIVATE
-========================================================= */
+   ================================================================ */
 
 self.addEventListener(
   "activate",
@@ -84,133 +146,544 @@ self.addEventListener(
 
     event.waitUntil(
 
-      caches
-        .keys()
+      caches.keys()
         .then(
-          keys =>
-            Promise.all(
+          cacheNames => {
 
-              keys
+            return Promise.all(
+
+              cacheNames
                 .filter(
-                  key =>
-                    key !== CACHE_NAME
+                  cacheName => {
+
+                    return (
+                      cacheName.startsWith(
+                        "mapa-podiy-ua-"
+                      ) &&
+                      cacheName !==
+                        APP_CACHE &&
+                      cacheName !==
+                        MEDIA_CACHE
+                    );
+
+                  }
                 )
                 .map(
-                  key =>
-                    caches.delete(key)
+                  cacheName => {
+
+                    console.log(
+                      "[SW] Видаляємо старий кеш:",
+                      cacheName
+                    );
+
+                    return caches.delete(
+                      cacheName
+                    );
+
+                  }
                 )
 
-            )
+            );
+
+          }
+        )
+        .then(
+          () => {
+
+            console.log(
+              "[SW] Activated:",
+              CACHE_VERSION
+            );
+
+            return self.clients.claim();
+
+          }
         )
 
     );
-
-    self.clients.claim();
 
   }
 );
 
 
-/* =========================================================
+/* ================================================================
    FETCH
-========================================================= */
+   ================================================================ */
 
 self.addEventListener(
   "fetch",
   event => {
 
-    /*
-      Google Apps Script API не кешуємо.
-    */
+    const request =
+      event.request;
 
-    if(
-      event.request.url.includes(
-        "script.google.com"
-      )
-    ){
+    /*
+     * Обробляємо тільки GET.
+     */
+
+    if (
+      request.method !==
+      "GET"
+    ) {
 
       return;
 
     }
 
+
+    const url =
+      new URL(
+        request.url
+      );
+
+
+    /*
+     * Google Apps Script API
+     *
+     * НЕ кешуємо.
+     *
+     * Потрібні свіжі дані.
+     */
+
+    if (
+      url.hostname.includes(
+        "script.google.com"
+      )
+    ) {
+
+      event.respondWith(
+
+        fetch(
+          request,
+          {
+            cache: "no-store"
+          }
+        )
+
+      );
+
+      return;
+
+    }
+
+
+    /*
+     * NEPTUN API
+     *
+     * Також НЕ кешуємо.
+     */
+
+    if (
+      url.hostname ===
+        "neptun.in.ua"
+    ) {
+
+      event.respondWith(
+
+        fetch(
+          request,
+          {
+            cache: "no-store"
+          }
+        )
+
+      );
+
+      return;
+
+    }
+
+
+    /*
+     * Google / external APIs
+     *
+     * Не втручаємося.
+     */
+
+    if (
+      url.origin !==
+      self.location.origin
+    ) {
+
+      return;
+
+    }
+
+
+    /*
+     * Sound/*.mp3
+     * Voice/*.mp3
+     *
+     * Cache First.
+     *
+     * Після першого завантаження
+     * файл можна використовувати
+     * навіть при нестабільному інтернеті.
+     */
+
+    if (
+      url.pathname.includes(
+        "/Sound/"
+      ) ||
+      url.pathname.includes(
+        "/Voice/"
+      )
+    ) {
+
+      event.respondWith(
+        mediaCacheFirst(
+          request
+        )
+      );
+
+      return;
+
+    }
+
+
+    /*
+     * Звичайні файли застосунку.
+     *
+     * Cache First + fallback network.
+     */
+
     event.respondWith(
+      appCacheFirst(
+        request
+      )
+    );
 
-      fetch(event.request)
-        .then(response => {
+  }
+);
 
-          /*
-            Успішний ресурс кладемо в cache.
-          */
 
-          if(
-            response &&
-            response.status === 200 &&
-            event.request.method === "GET"
-          ){
+/* ================================================================
+   APP CACHE FIRST
+   ================================================================ */
 
-            const copy =
-              response.clone();
+async function appCacheFirst(
+  request
+) {
 
-            caches
-              .open(CACHE_NAME)
-              .then(
-                cache =>
-                  cache.put(
-                    event.request,
-                    copy
-                  )
-              )
-              .catch(()=>{});
+  const cache =
+    await caches.open(
+      APP_CACHE
+    );
 
-          }
 
-          return response;
+  const cached =
+    await cache.match(
+      request
+    );
 
-        })
-        .catch(
-          async () => {
 
-            const cached =
-              await caches.match(
-                event.request
-              );
+  if (cached) {
 
-            if(cached){
+    /*
+     * Для HTML запускаємо
+     * фонове оновлення.
+     */
 
-              return cached;
+    if (
+      request.destination ===
+      "document"
+    ) {
 
-            }
+      updateInBackground(
+        request,
+        cache
+      );
 
-            if(
-              event.request.mode ===
-              "navigate"
-            ){
+    }
 
-              const offline =
-                await caches.match(
-                  "./offline.html"
-                );
+    return cached;
 
-              if(offline){
+  }
 
-                return offline;
 
-              }
+  try {
 
-            }
+    const response =
+      await fetch(
+        request
+      );
 
-            return new Response(
-              "Offline",
-              {
-                status:503,
-                headers:{
-                  "Content-Type":
-                    "text/plain; charset=utf-8"
-                }
-              }
-            );
 
-          }
+    if (
+      response &&
+      response.ok
+    ) {
+
+      cache.put(
+        request,
+        response.clone()
+      );
+
+    }
+
+    return response;
+
+  } catch (error) {
+
+    console.warn(
+      "[SW] Network error:",
+      request.url,
+      error
+    );
+
+
+    /*
+     * Якщо сторінка не відкрилася,
+     * пробуємо app.html.
+     */
+
+    if (
+      request.destination ===
+      "document"
+    ) {
+
+      const fallback =
+        await cache.match(
+          "./app.html"
+        );
+
+      if (fallback) {
+        return fallback;
+      }
+
+    }
+
+
+    throw error;
+
+  }
+
+}
+
+
+/* ================================================================
+   MEDIA CACHE FIRST
+   ================================================================ */
+
+async function mediaCacheFirst(
+  request
+) {
+
+  const cache =
+    await caches.open(
+      MEDIA_CACHE
+    );
+
+
+  const cached =
+    await cache.match(
+      request
+    );
+
+
+  if (cached) {
+
+    return cached;
+
+  }
+
+
+  try {
+
+    const response =
+      await fetch(
+        request
+      );
+
+
+    /*
+     * Якщо MP3 існує —
+     * кешуємо його.
+     */
+
+    if (
+      response &&
+      response.ok
+    ) {
+
+      cache.put(
+        request,
+        response.clone()
+      );
+
+      console.log(
+        "[SW] Media cached:",
+        request.url
+      );
+
+    }
+
+
+    return response;
+
+  } catch (error) {
+
+    console.warn(
+      "[SW] Media unavailable:",
+      request.url,
+      error
+    );
+
+    throw error;
+
+  }
+
+}
+
+
+/* ================================================================
+   BACKGROUND UPDATE
+   ================================================================ */
+
+async function updateInBackground(
+  request,
+  cache
+) {
+
+  try {
+
+    const response =
+      await fetch(
+        request,
+        {
+          cache: "no-store"
+        }
+      );
+
+
+    if (
+      response &&
+      response.ok
+    ) {
+
+      await cache.put(
+        request,
+        response.clone()
+      );
+
+      console.log(
+        "[SW] Background update:",
+        request.url
+      );
+
+    }
+
+  } catch (error) {
+
+    console.debug(
+      "[SW] Background update failed:",
+      error
+    );
+
+  }
+
+}
+
+
+/* ================================================================
+   PUSH
+   ================================================================ */
+
+self.addEventListener(
+  "push",
+  event => {
+
+    let data = {};
+
+
+    try {
+
+      if (
+        event.data
+      ) {
+
+        data =
+          event.data.json();
+
+      }
+
+    } catch (error) {
+
+      try {
+
+        data = {
+          body:
+            event.data
+              ? event.data.text()
+              : ""
+        };
+
+      } catch (innerError) {
+
+        console.debug(
+          innerError
+        );
+
+      }
+
+    }
+
+
+    const title =
+      data.title ||
+      "МапаПодійUA";
+
+
+    const body =
+      data.body ||
+      "Нове повідомлення";
+
+
+    const options = {
+
+      body,
+
+      icon:
+        data.icon ||
+        "./icon-192.png",
+
+      badge:
+        data.badge ||
+        "./icon-192.png",
+
+      tag:
+        data.tag ||
+        "mapa-podiy-ua",
+
+      renotify:
+        true,
+
+      data:
+        data.data ||
+        {
+          url:
+            "./app.html"
+        }
+
+    };
+
+
+    if (
+      data.vibrate
+    ) {
+
+      options.vibrate =
+        data.vibrate;
+
+    }
+
+
+    event.waitUntil(
+
+      self.registration
+        .showNotification(
+          title,
+          options
         )
 
     );
@@ -219,9 +692,9 @@ self.addEventListener(
 );
 
 
-/* =========================================================
-   ANDROID NOTIFICATION CLICK
-========================================================= */
+/* ================================================================
+   NOTIFICATION CLICK
+   ================================================================ */
 
 self.addEventListener(
   "notificationclick",
@@ -229,47 +702,100 @@ self.addEventListener(
 
     event.notification.close();
 
+
+    const notification =
+      event.notification;
+
+
+    let targetUrl =
+      "./app.html";
+
+
+    try {
+
+      if (
+        notification.data &&
+        notification.data.url
+      ) {
+
+        targetUrl =
+          notification.data.url;
+
+      }
+
+    } catch (error) {
+
+      console.debug(
+        error
+      );
+
+    }
+
+
     event.waitUntil(
 
       clients
         .matchAll({
-          type:"window",
-          includeUncontrolled:true
+          type: "window",
+          includeUncontrolled: true
         })
         .then(
           clientList => {
 
             /*
-              Якщо app.html вже відкрита —
-              повертаємо користувача в неї.
-            */
+             * Якщо app.html вже відкритий —
+             * фокусуємо його.
+             */
 
-            for(
+            for (
               const client
               of clientList
-            ){
+            ) {
 
-              if(
-                "focus" in client
-              ){
+              try {
 
-                return client.focus();
+                const clientUrl =
+                  new URL(
+                    client.url
+                  );
+
+                if (
+                  clientUrl.origin ===
+                    self.location.origin
+                ) {
+
+                  if (
+                    "focus" in client
+                  ) {
+
+                    return client.focus();
+
+                  }
+
+                }
+
+              } catch (error) {
+
+                console.debug(
+                  error
+                );
 
               }
 
             }
 
-            /*
-              Якщо PWA не відкрита —
-              відкриваємо app.html.
-            */
 
-            if(
+            /*
+             * Якщо застосунок не відкритий —
+             * відкриваємо app.html.
+             */
+
+            if (
               clients.openWindow
-            ){
+            ) {
 
               return clients.openWindow(
-                "./app.html"
+                targetUrl
               );
 
             }
@@ -278,6 +804,76 @@ self.addEventListener(
         )
 
     );
+
+  }
+);
+
+
+/* ================================================================
+   NOTIFICATION CLOSE
+   ================================================================ */
+
+self.addEventListener(
+  "notificationclose",
+  event => {
+
+    console.log(
+      "[SW] Notification closed."
+    );
+
+  }
+);
+
+
+/* ================================================================
+   MESSAGE
+   ================================================================ */
+
+self.addEventListener(
+  "message",
+  event => {
+
+    if (
+      !event.data
+    ) {
+
+      return;
+
+    }
+
+
+    /*
+     * Примусове оновлення Service Worker.
+     */
+
+    if (
+      event.data.type ===
+      "SKIP_WAITING"
+    ) {
+
+      self.skipWaiting();
+
+    }
+
+
+    /*
+     * Очистити media cache.
+     */
+
+    if (
+      event.data.type ===
+      "CLEAR_MEDIA_CACHE"
+    ) {
+
+      event.waitUntil(
+
+        caches.delete(
+          MEDIA_CACHE
+        )
+
+      );
+
+    }
 
   }
 );
