@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#10141b">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
+<link rel="apple-touch-icon" href="./icons/icon-192.png">
+<title>МапаПодійUA</title>
+<style>
+:root{color-scheme:dark;--bg:#10141b;--p:#171d26;--p2:#1d2530;--b:#2b3543;--t:#f4f6f8;--m:#aeb8c6;--a:#4da3ff}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--t);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+.app{height:100%;display:flex;flex-direction:column}.view{display:none;flex:1;min-height:0;overflow:auto}.view.active{display:flex;flex-direction:column}
+.header{padding:14px 16px 10px;border-bottom:1px solid var(--b);flex:none}.header h1{font-size:21px;margin:0 0 4px}.header p{margin:0;color:var(--m);font-size:13px}.content{padding:14px 14px 90px;overflow:auto}
+.card,.category{background:var(--p);border:1px solid var(--b);border-radius:16px;padding:14px;margin-bottom:12px}.status-card{display:flex;gap:12px;align-items:center}.dot{width:12px;height:12px;border-radius:50%;background:#777;flex:none}.sub,.note{color:var(--m);font-size:12px;line-height:1.45}.section-title{font-size:16px;font-weight:800;margin:18px 0 8px}.status-list{display:flex;flex-direction:column;gap:8px}.status{padding:11px 12px;background:var(--p2);border-left:4px solid #777;border-radius:12px}.switch{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--b)}.switch:last-child{border-bottom:0}.switch label{flex:1}.switch small{display:block;color:var(--m);font-size:12px;margin-top:3px}.switch input{width:21px;height:21px;accent-color:var(--a)}
+.range{width:100%;accent-color:var(--a)}.range-line{display:flex;justify-content:space-between;color:var(--m);font-size:12px}.cat-head{font-weight:800;margin-bottom:5px}.btn{border:0;border-radius:12px;padding:11px 14px;background:var(--a);color:#fff;font-weight:800}.btn2{background:var(--p2);border:1px solid var(--b)}.btnrow{display:flex;gap:8px}.btnrow .btn{flex:1}
+.mapview{overflow:hidden;position:relative}.mapframe{width:100%;height:100%;border:0}.bottom{height:68px;flex:none;display:flex;background:#171d26;border-top:1px solid var(--b);padding:6px 6px calc(6px + env(safe-area-inset-bottom));z-index:50}.nav{flex:1;border:0;background:transparent;color:var(--m);border-radius:12px;font-size:11px;font-weight:700}.nav.active{background:var(--p2);color:#fff}.ni{display:block;font-size:21px;line-height:23px}.toast{display:none;position:fixed;z-index:100;left:12px;right:12px;bottom:78px;background:#202936;border:1px solid var(--b);border-radius:14px;padding:12px;box-shadow:0 8px 28px #0008}.toast.show{display:block}.toast span{display:block;color:var(--m);font-size:12px;margin-top:3px}.link{color:#73b7ff}
+</style>
+</head>
+<body>
+<div class="app">
+<section id="home" class="view active">
+<div class="header"><h1>🏠 Головна</h1><p id="gpsHeader">GPS вимкнено</p></div>
+<div class="content">
+<div class="card status-card"><div id="gpsDot" class="dot"></div><div><b id="gpsStatus">Очікування GPS</b><div id="gpsCoords" class="sub">Увімкніть GPS у розділі «Сповіщення».</div></div></div>
+<div class="section-title">Статус біля вас</div>
+<div id="statuses" class="status-list"><div class="card note">GPS ще не визначив ваше положення.</div></div>
+<div class="card note">Статуси можуть додаватися одночасно для кількох активних зон.</div>
+</div></section>
+
+<section id="map" class="view mapview"><iframe class="mapframe" src="./map.html" title="МапаПодійUA — карта" allow="geolocation; fullscreen" referrerpolicy="strict-origin-when-cross-origin"></iframe></section>
+
+<section id="info" class="view">
+<div class="header"><h1>ℹ️ Інформація</h1><p>МапаПодійUA — Beta test</p></div>
+<div class="content">
+<div class="card"><b>Автор: ESO NET LIVE</b><p>Електронна пошта: <a class="link" href="mailto:esonetlive@gmail.com">esonetlive@gmail.com</a></p><p>Discord: <a class="link" href="https://discord.gg/D4sjtzFC" target="_blank" rel="noopener">Приєднатися до спільноти</a></p></div>
+<div class="card">Ви можете приєднатися до нашої спільноти, щоб допомагати людям актуальною інформацією.</div>
+<div class="card note">PWA може отримувати GPS і показувати сповіщення, коли застосунок активний. Гарантований постійний GPS після повного присипання/завершення PWA Android не надає стандартними веб-API.</div>
+</div></section>
+
+<section id="notify" class="view">
+<div class="header"><h1>🔔 Сповіщення</h1><p>Персональні GPS-зони</p></div>
+<div class="content">
+<div class="card">
+<div class="switch"><label><b>Доступ до GPS для отримання сповіщень</b><small id="gpsPerm">Не перевірено</small></label><input id="gpsOn" type="checkbox"></div>
+<div class="switch"><label><b>Дозвіл на сповіщення</b><small id="notifPerm">Не перевірено</small></label><input id="notifOn" type="checkbox"></div>
+</div>
+<div class="card"><b>Тест</b><div class="btnrow" style="margin-top:10px"><button class="btn" id="testN">Тест сповіщення</button><button class="btn btn2" id="testV">Тест голосу</button></div><p class="note">Сигнали генеруються локально, голос — системний TTS браузера.</p></div>
+<div id="settings"></div>
+</div></section>
+
+<nav class="bottom">
+<button class="nav active" data-id="home"><span class="ni">🏠</span>Головна</button>
+<button class="nav" data-id="map"><span class="ni">🗺️</span>Мапа</button>
+<button class="nav" data-id="info"><span class="ni">ℹ️</span>Інформація</button>
+<button class="nav" data-id="notify"><span class="ni">🔔</span>Сповіщення</button>
+</nav></div>
+<div id="toast" class="toast"><b id="toastT"></b><span id="toastS"></span></div>
+
+<script>
+const API="https://script.google.com/macros/s/AKfycbya9RPDtVyLlFeMccrNy9eC9yReqKkLiQjDYvdUD6n6aoDs9APYsA_tEoP3nJtVMtEhg/exec";
+const CAT={
+"1":{n:"🚨 Повітряна тривога",c:"#ff0000",r:3000,e:"Увага! Повітряна тривога! Пройдіть до найближчого укриття.",x:"Відбій повітряної тривоги!",s:"alarm",xok:1,v:1},
+"3":{n:"🔥 Пожежа",c:"#ff6600",r:800,e:"Увага! Ви перебуваєте в зоні пожежі. Будь ласка, залиште небезпечну зону або, якщо це безпечно, допоможіть загасити пожежу.",x:"Увага! Ви залишили зону пожежі або пожежу було ліквідовано.",s:"threat",xok:1,v:1},
+"4":{n:"🚓 ТЦК чи поліція",c:"#3388ff",r:500,e:"Увага! Поруч із вами можуть перебувати працівники ТЦК або поліцейські. Зберігайте спокій та дотримуйтеся закону.",x:"Увага! Ви залишили небезпечну зону.",s:"police",xok:1,v:1},
+"5":{n:"💥 ДТП",c:"#e60000",r:300,e:"Увага! Поруч сталася дорожньо-транспортна пригода. Зменште швидкість та будьте обережні.",x:"",s:"threat",xok:0,v:1},
+"7":{n:"🟢 Побутова подія",c:"#888888",r:0,e:"Не панікуйте. Відбувається побутова подія. Ви можете продовжувати свої справи.",x:"",s:"simple",xok:0,v:0},
+"9":{n:"🚑 Екстрені служби",c:"#ff3399",r:500,e:"Увага! Поруч працюють екстрені служби. Якщо побачите швидку допомогу або пожежну машину, пропустіть їх.",x:"",s:"ambulance",xok:0,v:1},
+"10":{n:"⚫ Поховання",c:"#888888",r:0,e:"Будь ласка, поводьтеся тихо та не порушуйте спокій. Поруч може відбуватися поховання або ви перебуваєте на кладовищі.",x:"",s:"clock",xok:0,v:0},
+"12":{n:"💡 Відключення електроенергії",c:"#ffd700",r:500,e:"Світло було вимкнено. Ви можете переглянути карту, щоб дізнатися приблизний час його увімкнення.",x:"Світло було увімкнено!",s:"power",xok:1,v:1}
+};
+let cfg=JSON.parse(localStorage.getItem("mapadoua-gps")||"{}"),events=[],inside=new Set(),watch=null,pos=null;
+for(const id in CAT)cfg[id]??={entry:true,exit:!!CAT[id].xok,volume:80,exitVolume:65,vibrate:!!CAT[id].v};
+function save(){localStorage.setItem("mapadoua-gps",JSON.stringify(cfg))}
+function toast(a,b){toastT.textContent=a;toastS.textContent=b||"";toast.classList.add("show");clearTimeout(window.tt);window.tt=setTimeout(()=>toast.classList.remove("show"),5000)}
+function render(){settings.innerHTML="";for(const id in CAT){let c=CAT[id],s=cfg[id],d=document.createElement("div");d.className="category";d.innerHTML=`<div class="cat-head">${c.n}</div><div class="switch"><label>Вхід у зону<small>${c.e}</small></label><input data-id="${id}" data-k="entry" type="checkbox" ${s.entry?"checked":""}></div>${c.xok?`<div class="switch"><label>Вихід із зони<small>${c.x}</small></label><input data-id="${id}" data-k="exit" type="checkbox" ${s.exit?"checked":""}></div>`:""}<div style="padding:10px 0"><b>Гучність оголошення у зоні</b><div class="range-line"><span>0%</span><span id="v${id}">${s.volume}%</span></div><input class="range" data-id="${id}" data-k="volume" type="range" min="0" max="100" value="${s.volume}"></div>${c.xok?`<div style="padding:10px 0"><b>Гучність «відбій»</b><div class="range-line"><span>0%</span><span id="xv${id}">${s.exitVolume}%</span></div><input class="range" data-id="${id}" data-k="exitVolume" type="range" min="0" max="100" value="${s.exitVolume}"></div>`:""}<div class="switch"><label>Вібрація</label><input data-id="${id}" data-k="vibrate" type="checkbox" ${s.vibrate?"checked":""}></div>`;settings.appendChild(d)}
+settings.querySelectorAll("input").forEach(i=>i.oninput=i.onchange=()=>{let s=cfg[i.dataset.id];s[i.dataset.k]=i.type==="checkbox"?i.checked:+i.value;if(i.dataset.k==="volume")document.getElementById("v"+i.dataset.id).textContent=i.value+"%";if(i.dataset.k==="exitVolume")document.getElementById("xv"+i.dataset.id).textContent=i.value+"%";save()})}
+async function notif(){if(!("Notification"in window)){cfg.notifications=false;save();return}let p=await Notification.requestPermission();cfg.notifications=p==="granted";save();perm()}
+function perm(){gpsPerm.textContent=navigator.permissions?"GPS: запит доступу при запуску":"GPS через браузер";notifPerm.textContent=("Notification"in window)?"Сповіщення: "+Notification.permission:"Не підтримуються";gpsOn.checked=!!cfg.gps;notifOn.checked=!!cfg.notifications}
+function start(){if(!navigator.geolocation){toast("GPS недоступний","Браузер не підтримує Geolocation API.");return}if(watch!==null)return;navigator.geolocation.getCurrentPosition(got,err,{enableHighAccuracy:true,maximumAge:10000,timeout:15000});watch=navigator.geolocation.watchPosition(got,err,{enableHighAccuracy:true,maximumAge:10000,timeout:20000});cfg.gps=true;save();perm()}
+function stop(){if(watch!==null){navigator.geolocation.clearWatch(watch);watch=null}cfg.gps=false;save();perm();gpsStatus.textContent="GPS вимкнено";gpsDot.style.background="#777"}
+function err(e){gpsStatus.textContent="Помилка GPS";gpsCoords.textContent=e.code===1?"Доступ до GPS заборонено. Дозвольте його для сайту.":e.message;gpsDot.style.background="#f44"}
+function got(p){pos={lat:p.coords.latitude,lng:p.coords.longitude,acc:p.coords.accuracy};gpsStatus.textContent="GPS працює";gpsCoords.textContent=`${pos.lat.toFixed(5)}, ${pos.lng.toFixed(5)} • ±${Math.round(pos.acc)} м`;gpsHeader.textContent=`GPS • ±${Math.round(pos.acc)} м`;gpsDot.style.background="#39c56b";check()}
+function dist(a,b,c,d){let R=6371000,P=Math.PI/180,A=(c-a)*P,B=(d-b)*P,x=Math.sin(A/2)**2+Math.cos(a*P)*Math.cos(c*P)*Math.sin(B/2)**2;return 2*R*Math.asin(Math.min(1,Math.sqrt(x)))}
+function check(){if(!pos)return;let cur=new Set(),near=[];for(const o of events){let id=String(o.type??""),c=CAT[id],lat=+o.lat,lng=+o.lng,r=o.radius===""||o.radius==null?c?.r:+o.radius;if(!c||!Number.isFinite(lat)||!Number.isFinite(lng)||!(r>0))continue;let d=dist(pos.lat,pos.lng,lat,lng),key=String(o.id??id+":"+lat+":"+lng);if(d<=r){cur.add(key);near.push({o,d});if(!inside.has(key))fire(o,"entry")}else if(inside.has(key))fire(o,"exit")}inside=cur;near.sort((a,b)=>a.d-b.d);statuses.innerHTML=near.length?near.map(x=>`<div class="status" style="border-left-color:${CAT[String(x.o.type)].c}"><b>${CAT[String(x.o.type)].n}</b><div class="sub">${Math.round(x.d)} м${x.o.village?" • "+x.o.village:""}${x.o.desc?" • "+x.o.desc:""}</div></div>`).join(""):'<div class="card note">Активних зон поруч не виявлено.</div>'}
+function fire(o,mode){let c=CAT[String(o.type)],s=cfg[String(o.type)];if(!c||!s||(mode==="entry"&&!s.entry)||(mode==="exit"&&(!s.exit||!c.xok)))return;let text=mode==="entry"?c.e:c.x,vol=(mode==="entry"?s.volume:s.exitVolume)/100;if("Notification"in window&&cfg.notifications&&Notification.permission==="granted")try{new Notification(c.n,{body:text,icon:"./icons/icon-192.png",tag:"mapadoua-"+o.id})}catch(e){}toast((mode==="entry"?"🔔 ":"⚪ ")+c.n,text);tone(c.s,vol);speak(text,vol);if(s.vibrate&&navigator.vibrate)navigator.vibrate(mode==="entry"?[250,120,250]:[150])}
+function ctx(){window.AC??=new (window.AudioContext||window.webkitAudioContext)();if(AC.state==="suspended")AC.resume();return AC}
+function tone(kind,v){let a=ctx();function t(f,d,o,typ="sine",delay=0){let x=a.createOscillator(),g=a.createGain(),q=a.currentTime+delay;x.type=typ;x.frequency.setValueAtTime(f,q);g.gain.setValueAtTime(.001,q);g.gain.linearRampToValueAtTime(Math.max(.001,o),q+.015);g.gain.exponentialRampToValueAtTime(.001,q+d);x.connect(g).connect(a.destination);x.start(q);x.stop(q+d+.03)}if(kind==="simple"){t(880,.12,.15*v);return}if(kind==="alarm"){t(660,.45,.22*v,"sawtooth");t(520,.45,.22*v,"sawtooth",.48);t(660,.45,.22*v,"sawtooth",.96);return}if(kind==="threat"){t(120,.18,.25*v,"square");t(80,.22,.22*v,"square",.22);t(120,.18,.22*v,"square",.48);return}if(kind==="police"||kind==="ambulance"){for(let i=0;i<4;i++){t(kind==="police"?720:620,.2,.18*v,"square",i*.26);t(kind==="police"?420:480,.2,.18*v,"square",i*.26+.2)}return}if(kind==="clock"){t(1200,.035,.14*v);t(900,.035,.11*v,"sine",.08);return}if(kind==="power"){t(100,.55,.20*v,"sawtooth");t(55,.7,.18*v,"sawtooth",.42);return}t(600,.18,.16*v)}
+function speak(x,v){if(!x||!("speechSynthesis"in window))return;speechSynthesis.cancel();let u=new SpeechSynthesisUtterance(x);u.lang="uk-UA";u.rate=.92;u.volume=v;speechSynthesis.speak(u)}
+async function get(){try{let r=await fetch(API+"?t="+Date.now(),{cache:"no-store"});let d=await r.json();events=Array.isArray(d)?d:(Array.isArray(d.events)?d.events:[]);check()}catch(e){console.warn(e)}}
+document.querySelectorAll(".nav").forEach(b=>b.onclick=()=>{document.querySelectorAll(".nav").forEach(x=>x.classList.toggle("active",x===b));document.querySelectorAll(".view").forEach(x=>x.classList.remove("active"));document.getElementById(b.dataset.id).classList.add("active")});
+gpsOn.onchange=()=>gpsOn.checked?start():stop();notifOn.onchange=()=>notifOn.checked?notif():((cfg.notifications=false),save(),perm());
+testV.onclick=()=>{tone("alarm",.8);speak("Тестове голосове повідомлення МапаПодійUA.",.8)};testN.onclick=async()=>{if(!cfg.notifications)await notif();if(cfg.notifications)new Notification("МапаПодійUA",{body:"Це тестове сповіщення.",icon:"./icons/icon-192.png"});tone("simple",.8);speak("Це тестове сповіщення МапаПодійUA.",.8)};
+render();perm();get();setInterval(get,10000);if(cfg.gps)start();
+</script>
+</body></html>

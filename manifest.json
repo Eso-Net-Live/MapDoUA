@@ -1,9 +1,9 @@
 {
   "name": "МапаПодійUA",
   "short_name": "МапаПодійUA",
-  "description": "Мапа подій та важливої інформації по Україні.",
+  "description": "Мапа подій та персональні GPS-сповіщення.",
   "lang": "uk",
-  "start_url": "./index.html",
+  "start_url": "./app.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait-primary",
