@@ -149,19 +149,9 @@ body {
 }
 
 @keyframes alertPulse {
-
-  0% {
-    opacity: 1;
-  }
-
-  50% {
-    opacity: 0.55;
-  }
-
-  100% {
-    opacity: 1;
-  }
-
+  0% { opacity: 1; }
+  50% { opacity: 0.55; }
+  100% { opacity: 1; }
 }
 
 /* =========================
@@ -191,8 +181,7 @@ body {
 
   cursor: pointer;
 
-  box-shadow:
-    0 4px 15px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.45);
 
   backdrop-filter: blur(8px);
 
@@ -238,7 +227,7 @@ body {
 }
 
 /* =========================
-   NEPTUN ATTRIBUTION
+   ATTRIBUTION
 ========================= */
 
 #neptunAttribution {
@@ -285,8 +274,7 @@ body {
 
   font-size: 20px;
 
-  box-shadow:
-    0 2px 8px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 
 .neptun-threat-marker {
@@ -309,30 +297,33 @@ body {
     0 3px 10px rgba(0, 0, 0, 0.6);
 }
 
+.ru-threat-marker {
+  background: rgba(139, 69, 19, 0.92) !important;
+  box-shadow:
+    0 0 12px rgba(139, 69, 19, 0.9),
+    0 3px 10px rgba(0, 0, 0, 0.6) !important;
+}
+
 .neptun-alert-pulse {
   animation: neptunPulse 1.2s infinite;
 }
 
 @keyframes neptunPulse {
-
   0% {
     box-shadow:
       0 0 5px rgba(255, 0, 0, 0.5),
       0 3px 10px rgba(0, 0, 0, 0.5);
   }
-
   50% {
     box-shadow:
       0 0 24px rgba(255, 0, 0, 1),
       0 3px 10px rgba(0, 0, 0, 0.5);
   }
-
   100% {
     box-shadow:
       0 0 5px rgba(255, 0, 0, 0.5),
       0 3px 10px rgba(0, 0, 0, 0.5);
   }
-
 }
 
 /* =========================
@@ -340,7 +331,6 @@ body {
 ========================= */
 
 @media (max-width: 600px) {
-
   #panelToggle {
     display: block;
   }
@@ -351,25 +341,17 @@ body {
 
     width: 285px;
     max-width: calc(100vw - 20px);
-
     max-height: calc(100vh - 20px);
 
-    transform: translateX(
-      calc(-100% - 20px)
-    );
-
+    transform: translateX(calc(-100% - 20px));
     opacity: 0;
-
     pointer-events: none;
-
     padding-top: 45px;
   }
 
   #panel.panel-open {
     transform: translateX(0);
-
     opacity: 1;
-
     pointer-events: auto;
   }
 
@@ -388,20 +370,12 @@ body {
   #neptunAttribution {
     right: 6px;
     bottom: 6px;
-
     font-size: 10px;
-
     padding: 4px 6px;
   }
-
 }
 
-/* =========================
-   VERY SMALL PHONES
-========================= */
-
 @media (max-width: 380px) {
-
   #panel {
     width: 270px;
   }
@@ -409,12 +383,9 @@ body {
   #panelToggle {
     width: 42px;
     height: 42px;
-
     line-height: 42px;
-
     font-size: 22px;
   }
-
 }
 
 </style>
@@ -424,25 +395,16 @@ body {
 
 <div id="map"></div>
 
-<!-- =========================
-     MOBILE PANEL BUTTON
-========================= -->
-
 <button
   id="panelToggle"
   type="button"
-  aria-label="Відкрити налаштування карти"
+  aria-label="Відкрити налаштування карты"
   title="Налаштування"
 >
   ☰
 </button>
 
 <div id="panel">
-
-  <!-- =========================
-       CLOSE PANEL
-  ========================= -->
-
   <button
     id="panelClose"
     type="button"
@@ -459,7 +421,6 @@ body {
   <div id="status">
     🟡 Кеш: перевірка...
   </div>
-
 </div>
 
 <div id="neptunAttribution">
@@ -473,10 +434,7 @@ body {
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
 <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
-
-<!-- NEPTUN SDK -->
 <script src="https://neptun.in.ua/sdk/neptun.js"></script>
 
 <script>
@@ -502,6 +460,7 @@ const RADAR_ALERTS_URL =
 
 const NEPTUN_CATEGORY_ALERT = "1";
 const NEPTUN_CATEGORY_UAV = "2";
+const CATEGORY_RU_PANIC = "14";
 
 const RAIONS_GEOJSON_URL =
   "https://raw.githubusercontent.com/slawomirmatuszak/ukrainian_geodata/main/rayony.geojson";
@@ -514,16 +473,14 @@ const OBLASTS_GEOJSON_URL =
 ========================================================= */
 
 const categories = {
-
   "1": {
-    name: "🚨 Повітряна тривога",
+    name: "🚨 Повітряна тривога (UA)",
     emoji: "🚨",
     radius: 3000,
     color: "#ff0000",
     minZoom: 0,
     show: true
   },
-
   "2": {
     name: "✈️ Літає / Авіація / БпЛА",
     emoji: "✈️",
@@ -532,16 +489,14 @@ const categories = {
     minZoom: 0,
     show: true
   },
-
   "3": {
-    name: "🔥 Вогонь / Пожежа",
+    name: "🔥 Вогонь / Пожежа / Вибухи",
     emoji: "🔥",
     radius: 800,
     color: "#ff6600",
     minZoom: 0,
     show: true
   },
-
   "4": {
     name: "🚓 ТЦК чи поліція",
     emoji: "🚓",
@@ -550,7 +505,6 @@ const categories = {
     minZoom: 11,
     show: true
   },
-
   "5": {
     name: "💥 ДТП",
     emoji: "💥",
@@ -559,7 +513,6 @@ const categories = {
     minZoom: 11,
     show: true
   },
-
   "6": {
     name: "🚧 Перекрито",
     emoji: "🚧",
@@ -568,7 +521,6 @@ const categories = {
     minZoom: 11,
     show: true
   },
-
   "7": {
     name: "🪚 Побут",
     emoji: "🪚",
@@ -577,7 +529,6 @@ const categories = {
     minZoom: 14,
     show: false
   },
-
   "8": {
     name: "🌊 Болото",
     emoji: "🌊",
@@ -586,7 +537,6 @@ const categories = {
     minZoom: 14,
     show: false
   },
-
   "9": {
     name: "🚑 Екстрені машини",
     emoji: "🚑",
@@ -595,7 +545,6 @@ const categories = {
     minZoom: 11,
     show: true
   },
-
   "10": {
     name: "⚰️ Шана / Похорон",
     emoji: "⚰️",
@@ -604,7 +553,6 @@ const categories = {
     minZoom: 14,
     show: false
   },
-
   "11": {
     name: "🎉 Події",
     emoji: "🎉",
@@ -613,7 +561,6 @@ const categories = {
     minZoom: 14,
     show: true
   },
-
   "12": {
     name: "💡 Відключення світла",
     emoji: "💡",
@@ -622,7 +569,6 @@ const categories = {
     minZoom: 11,
     show: true
   },
-
   "13": {
     name: "📰 Новини",
     emoji: "📰",
@@ -630,18 +576,22 @@ const categories = {
     color: "#00aaff",
     minZoom: 5,
     show: false
+  },
+  "14": {
+    name: "📛 Паніка в РФ",
+    emoji: "📛",
+    radius: 2500,
+    color: "#8B4513",
+    minZoom: 0,
+    show: false
   }
-
 };
 
 /* =========================================================
    MAP
 ========================================================= */
 
-const map =
-  L.map("map", {
-    zoomControl: true
-  }).setView([47.60, 32.25], 6);
+const map = L.map("map", { zoomControl: true }).setView([47.60, 32.25], 6);
 
 L.tileLayer(
   "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
@@ -659,6 +609,7 @@ const sheetLayerGroup = L.layerGroup().addTo(map);
 const neptunThreatLayerGroup = L.layerGroup().addTo(map);
 const neptunRaionLayerGroup = L.layerGroup().addTo(map);
 const neptunOblastLayerGroup = L.layerGroup().addTo(map);
+const ruPanicLayerGroup = L.layerGroup().addTo(map);
 
 /* =========================================================
    DATA
@@ -669,6 +620,7 @@ let neptunThreats = [];
 let neptunAlerts = [];
 let neptunAlertOblasts = [];
 let radarAlerts = [];
+let ruAlerts = [];
 
 let raionsGeoJSON = null;
 let oblastsGeoJSON = null;
@@ -731,6 +683,7 @@ function saveOfflineState() {
         neptunAlerts: Array.isArray(neptunAlerts) ? neptunAlerts : [],
         neptunAlertOblasts: Array.isArray(neptunAlertOblasts) ? neptunAlertOblasts : [],
         radarAlerts: Array.isArray(radarAlerts) ? radarAlerts : [],
+        ruAlerts: Array.isArray(ruAlerts) ? ruAlerts : [],
         raionsGeoJSON: raionsGeoJSON || null,
         oblastsGeoJSON: oblastsGeoJSON || null
       };
@@ -751,7 +704,6 @@ function saveOfflineState() {
         console.warn("OFFLINE: IndexedDB save failed:", error);
       }
 
-      // Не зберігаємо важкий GeoJSON в localStorage задля уникнення лагів
       try {
         const lightState = { ...state, raionsGeoJSON: null, oblastsGeoJSON: null };
         localStorage.setItem(OFFLINE_LOCAL_KEY, JSON.stringify(lightState));
@@ -826,6 +778,7 @@ async function restoreOfflineState() {
   if (Array.isArray(state.neptunAlerts)) neptunAlerts = state.neptunAlerts;
   if (Array.isArray(state.neptunAlertOblasts)) neptunAlertOblasts = state.neptunAlertOblasts;
   if (Array.isArray(state.radarAlerts)) radarAlerts = state.radarAlerts;
+  if (Array.isArray(state.ruAlerts)) ruAlerts = state.ruAlerts;
   if (state.raionsGeoJSON) raionsGeoJSON = state.raionsGeoJSON;
   if (state.oblastsGeoJSON) oblastsGeoJSON = state.oblastsGeoJSON;
 
@@ -940,6 +893,16 @@ function getSheetCategory(obj) {
   return String(obj.type ?? "").trim();
 }
 
+function isRuThreat(threat) {
+  if (threat?.isRu === true || threat?.country === "RU" || threat?.country === "ru") return true;
+  if (threat?.lat && threat?.lon) {
+    const lat = Number(threat.lat);
+    const lon = Number(threat.lon);
+    if (lat > 50.0 && lon > 36.5 && lon < 55.0) return true;
+  }
+  return false;
+}
+
 function createEmojiIcon(emoji, color) {
   return L.divIcon({
     className: "",
@@ -949,15 +912,16 @@ function createEmojiIcon(emoji, color) {
   });
 }
 
-function createNeptunThreatIcon(type) {
+function createNeptunThreatIcon(type, isRu = false) {
   let emoji = "✈️";
   const norm = normalizeType(type);
   if (norm === "missile" || norm === "rocket") emoji = "🚀";
-  else if (norm === "uav") emoji = "✈️";
+
+  const ruClass = isRu ? "ru-threat-marker" : "";
 
   return L.divIcon({
     className: "",
-    html: `<div class="neptun-threat-marker">${emoji}</div>`,
+    html: `<div class="neptun-threat-marker ${ruClass}">${emoji}</div>`,
     iconSize: [38, 38],
     iconAnchor: [19, 19]
   });
@@ -971,17 +935,22 @@ function renderSheetObjects() {
   sheetLayerGroup.clearLayers();
 
   sheetObjects.forEach(obj => {
-    const categoryId = getSheetCategory(obj);
-    const category = categories[categoryId];
+    let categoryId = getSheetCategory(obj);
+    let category = categories[categoryId];
     if (!category) return;
 
     const lat = Number(obj.lat);
     const lng = Number(obj.lng);
     if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
 
+    let markerColor = category.color;
+    if ((categoryId === "3" || categoryId === "14") && (obj.country === "RU" || obj.isRu)) {
+      markerColor = "#8B4513";
+    }
+
     const group = L.layerGroup();
     const marker = L.marker([lat, lng], {
-      icon: createEmojiIcon(category.emoji, category.color)
+      icon: createEmojiIcon(category.emoji, markerColor)
     });
 
     let radius = Number(obj.radius);
@@ -990,8 +959,8 @@ function renderSheetObjects() {
     if (radius > 0 && !obj.geojson) {
       L.circle([lat, lng], {
         radius: radius,
-        color: category.color,
-        fillColor: category.color,
+        color: markerColor,
+        fillColor: markerColor,
         fillOpacity: 0.12,
         weight: 2
       }).addTo(group);
@@ -1002,9 +971,9 @@ function renderSheetObjects() {
         const geo = typeof obj.geojson === "string" ? JSON.parse(obj.geojson) : obj.geojson;
         L.geoJSON(geo, {
           style: {
-            color: category.color,
+            color: markerColor,
             weight: 3,
-            fillColor: category.color,
+            fillColor: markerColor,
             fillOpacity: 0.18
           }
         }).addTo(group);
@@ -1071,6 +1040,12 @@ function updateVisibility() {
     if (!map.hasLayer(neptunOblastLayerGroup)) map.removeLayer(neptunOblastLayerGroup);
   }
 
+  if (visibleCategories[CATEGORY_RU_PANIC]) {
+    if (!map.hasLayer(ruPanicLayerGroup)) map.addLayer(ruPanicLayerGroup);
+  } else {
+    if (map.hasLayer(ruPanicLayerGroup)) map.removeLayer(ruPanicLayerGroup);
+  }
+
   updateCategoryCounts();
 }
 
@@ -1084,13 +1059,19 @@ function updateCategoryCounts() {
   });
 
   neptunThreats.forEach(threat => {
-    const category = getNeptunThreatCategory(threat);
-    if (counts[category] !== undefined) counts[category]++;
+    if (isRuThreat(threat)) {
+      counts[CATEGORY_RU_PANIC]++;
+    } else {
+      counts[NEPTUN_CATEGORY_UAV]++;
+    }
   });
 
   counts["1"] += neptunAlerts.length;
   counts["1"] += neptunAlertOblasts.length;
-  counts["1"] += radarAlerts.length;
+  counts["1"] += radarAlerts.filter(a => !a.isRu && a.country !== "RU").length;
+
+  counts[CATEGORY_RU_PANIC] += ruAlerts.length;
+  counts[CATEGORY_RU_PANIC] += radarAlerts.filter(a => a.isRu || a.country === "RU").length;
 
   Object.keys(categories).forEach(id => {
     const element = document.getElementById("count-" + id);
@@ -1126,7 +1107,10 @@ async function loadRadarAlerts() {
     if (!response.ok) throw new Error("HTTP " + response.status);
     const data = await response.json();
 
-    radarAlerts = Array.isArray(data) ? data : (data.alerts || []);
+    const allAlerts = Array.isArray(data) ? data : (data.alerts || []);
+    radarAlerts = allAlerts.filter(a => !a.isRu && a.country !== "RU");
+    ruAlerts = allAlerts.filter(a => a.isRu || a.country === "RU");
+
     renderAlertZones();
     updateCategoryCounts();
     updateStatus();
@@ -1168,30 +1152,25 @@ function featureMatchesAlert(feature, alert) {
 
 function findRaionAlert(feature) {
   return neptunAlerts.find(alert => featureMatchesAlert(feature, alert)) ||
-         radarAlerts.find(alert => alert.type === "raion" && featureMatchesAlert(feature, alert)) || null;
+         radarAlerts.find(alert => alert.type === "raion" && featureMatchesAlert(feature, alert)) ||
+         ruAlerts.find(alert => alert.type === "raion" && featureMatchesAlert(feature, alert)) || null;
 }
 
 function findOblastAlert(feature) {
   return neptunAlertOblasts.find(alert => featureMatchesAlert(feature, alert)) ||
-         radarAlerts.find(alert => (alert.type === "oblast" || !alert.type) && featureMatchesAlert(feature, alert)) || null;
+         radarAlerts.find(alert => (alert.type === "oblast" || !alert.type) && featureMatchesAlert(feature, alert)) ||
+         ruAlerts.find(alert => (alert.type === "oblast" || !alert.type) && featureMatchesAlert(feature, alert)) || null;
 }
 
 function getAlertStyle(alert, isOblast) {
-  const level = String(alert?.level || "").toLowerCase();
-  if (level === "yellow") {
-    return {
-      color: "#ffcc00",
-      weight: isOblast ? 3 : 2,
-      opacity: 1,
-      fillColor: "#ffcc00",
-      fillOpacity: isOblast ? 0.10 : 0.18
-    };
-  }
+  const isRu = alert?.isRu === true || alert?.country === "RU";
+  const mainColor = isRu ? "#8B4513" : "#ff0000";
+
   return {
-    color: "#ff0000",
+    color: mainColor,
     weight: isOblast ? 4 : 3,
     opacity: 1,
-    fillColor: "#ff0000",
+    fillColor: mainColor,
     fillOpacity: isOblast ? 0.16 : 0.28
   };
 }
@@ -1228,21 +1207,25 @@ async function loadNeptunGeoJSON() {
 function renderAlertZones() {
   neptunRaionLayerGroup.clearLayers();
   neptunOblastLayerGroup.clearLayers();
+  ruPanicLayerGroup.clearLayers();
 
   if (oblastsGeoJSON?.features) {
     oblastsGeoJSON.features.forEach(feature => {
       const alert = findOblastAlert(feature);
       if (!alert) return;
 
+      const isRu = alert.isRu === true || alert.country === "RU";
       const layer = L.geoJSON(feature, {
         style: getAlertStyle(alert, true),
         interactive: false
       });
 
-      layer._category = NEPTUN_CATEGORY_ALERT;
+      layer._category = isRu ? CATEGORY_RU_PANIC : NEPTUN_CATEGORY_ALERT;
       layer._neptunAlert = true;
-      layer.bindTooltip(`🚨 ${alert.name || alert.region}<br>Рівень: ${alert.level || "активна"}`, { sticky: true });
-      layer.addTo(neptunOblastLayerGroup);
+      layer.bindTooltip(`🚨 ${alert.name || alert.region}<br>Статус: активна`, { sticky: true });
+
+      if (isRu) layer.addTo(ruPanicLayerGroup);
+      else layer.addTo(neptunOblastLayerGroup);
     });
   }
 
@@ -1251,15 +1234,18 @@ function renderAlertZones() {
       const alert = findRaionAlert(feature);
       if (!alert) return;
 
+      const isRu = alert.isRu === true || alert.country === "RU";
       const layer = L.geoJSON(feature, {
         style: getAlertStyle(alert, false),
         interactive: false
       });
 
-      layer._category = NEPTUN_CATEGORY_ALERT;
+      layer._category = isRu ? CATEGORY_RU_PANIC : NEPTUN_CATEGORY_ALERT;
       layer._neptunAlert = true;
-      layer.bindTooltip(`🚨 ${alert.name || alert.region}<br>Рівень: ${alert.level || "активна"}`, { sticky: true });
-      layer.addTo(neptunRaionLayerGroup);
+      layer.bindTooltip(`🚨 ${alert.name || alert.region}<br>Статус: активна`, { sticky: true });
+
+      if (isRu) layer.addTo(ruPanicLayerGroup);
+      else layer.addTo(neptunRaionLayerGroup);
     });
   }
 
@@ -1269,10 +1255,6 @@ function renderAlertZones() {
 /* =========================================================
    THREATS
 ========================================================= */
-
-function getNeptunThreatCategory(threat) {
-  return NEPTUN_CATEGORY_UAV;
-}
 
 function getThreatPosition(threat) {
   try {
@@ -1293,12 +1275,14 @@ function getThreatPosition(threat) {
 }
 
 function getThreatTitle(threat) {
+  const isRu = isRuThreat(threat);
   const type = normalizeType(threat?.type);
-  if (type === "uav") return "✈️ Шахед / БпЛА";
-  if (type === "missile" || type === "rocket") return "🚀 Ракета";
-  if (threat?.title) return String(threat.title);
-  if (threat?.name) return String(threat.name);
-  return "✈️ Повітряна загроза";
+  let baseTitle = "✈️ Повітряна загроза";
+
+  if (type === "uav") baseTitle = "✈️ БпЛА";
+  else if (type === "missile" || type === "rocket") baseTitle = "🚀 Ракета";
+
+  return isRu ? `📛 Паніка в РФ (${baseTitle})` : baseTitle;
 }
 
 function renderNeptunThreats() {
@@ -1310,20 +1294,26 @@ function renderNeptunThreats() {
     const position = getThreatPosition(threat);
     if (!position) return;
 
+    const isRu = isRuThreat(threat);
     const marker = L.marker(position, {
-      icon: createNeptunThreatIcon(threat.type)
+      icon: createNeptunThreatIcon(threat.type, isRu)
     });
 
     marker.bindPopup(`
       <b>${getThreatTitle(threat)}</b><br><br>
       Будьте обережні та залишайтеся в безпеці!
       ${threat.advisory ? "<br><br>⚠️ Спостереження (advisory)" : ""}
-      <br><br>від NEPTUN
     `);
 
-    marker._category = NEPTUN_CATEGORY_UAV;
-    marker._neptunThreat = true;
-    marker.addTo(neptunThreatLayerGroup);
+    if (isRu) {
+      marker._category = CATEGORY_RU_PANIC;
+      marker._neptunThreat = true;
+      marker.addTo(ruPanicLayerGroup);
+    } else {
+      marker._category = NEPTUN_CATEGORY_UAV;
+      marker._neptunThreat = true;
+      marker.addTo(neptunThreatLayerGroup);
+    }
   });
 
   updateVisibility();
@@ -1380,9 +1370,9 @@ function updateStatus() {
   const status = document.getElementById("status");
   if (!status) return;
 
-  const alerts = neptunAlerts.length + neptunAlertOblasts.length + radarAlerts.length;
+  const alerts = neptunAlerts.length + neptunAlertOblasts.length + radarAlerts.filter(a => !a.isRu).length;
+  const ruPanicCount = ruAlerts.length + radarAlerts.filter(a => a.isRu).length;
   const uavs = neptunThreats.length;
-  const news = sheetObjects.filter(obj => getSheetCategory(obj) === "13").length;
 
   let cacheText = offlineCacheLoaded ? (offlineCacheSavedAt ? formatCacheAge(offlineCacheSavedAt) : "збережено") : "порожній";
   const networkText = navigator.onLine ? "🟢 ОНЛАЙН" : "🔴 ОФЛАЙН";
@@ -1391,9 +1381,9 @@ function updateStatus() {
     ${networkText}<br>
     Кеш: ${cacheText}<br><br>
     Google Sheets: ${sheetObjects.length}<br>
-    📰 Новин: ${news}<br>
-    🚨 Тривог (NEPTUN+Radar): ${alerts}<br>
-    ✈️ Загроз: ${uavs}
+    🚨 Тривог UA: ${alerts}<br>
+    ✈️ Загроз (БпЛА/Ракети): ${uavs}<br>
+    📛 Паніка в РФ: ${ruPanicCount}
   `;
 }
 
