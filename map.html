@@ -1,996 +1,3905 @@
 <!DOCTYPE html>
 <html lang="uk">
+
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>МапаПодійUA — карта</title>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css">
+
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+>
+
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css"
+>
+
 <style>
-*{box-sizing:border-box}
-html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;font-family:Arial,sans-serif;background:#111}
-#map{width:100%;height:100%}
-#panel{position:absolute;z-index:1000;top:10px;left:10px;width:300px;max-width:calc(100vw - 20px);max-height:calc(100vh - 20px);overflow-y:auto;background:rgba(20,20,20,.94);color:white;border-radius:12px;padding:12px;box-shadow:0 4px 18px rgba(0,0,0,.45);backdrop-filter:blur(8px);transition:transform .25s ease,opacity .25s ease}
-#panel h2{margin:0 0 10px;font-size:18px}
-.category{display:flex;align-items:center;gap:8px;padding:7px 4px;border-radius:7px;cursor:pointer;user-select:none}
-.category:hover{background:rgba(255,255,255,.08)}
-.category input{width:18px;height:18px;cursor:pointer}
-.category-name{flex:1;font-size:14px}
-.category-count{min-width:22px;padding:2px 6px;border-radius:10px;background:rgba(255,255,255,.12);color:#ddd;font-size:11px;text-align:center}
-#status{margin-top:9px;padding-top:8px;border-top:1px solid rgba(255,255,255,.12);font-size:11px;color:#aaa;line-height:1.4}
-#alertBadge{display:none;margin-top:8px;padding:8px;border-radius:8px;background:rgba(255,0,0,.22);border:1px solid rgba(255,60,60,.6);color:#ff7777;font-weight:bold;font-size:13px;text-align:center;animation:alertPulse 1.5s infinite}
-@keyframes alertPulse{0%{opacity:1}50%{opacity:.55}100%{opacity:1}}
-#panelToggle{position:absolute;z-index:1100;top:10px;left:10px;width:46px;height:46px;border:none;border-radius:12px;background:rgba(20,20,20,.94);color:white;font-size:24px;line-height:46px;text-align:center;cursor:pointer;box-shadow:0 4px 15px rgba(0,0,0,.45);backdrop-filter:blur(8px);display:none}
-#panelToggle:hover{background:rgba(45,45,45,.96)}
-#panelToggle:active{transform:scale(.95)}
-#panelClose{display:none;position:absolute;top:8px;right:8px;width:34px;height:34px;border:none;border-radius:8px;background:rgba(255,255,255,.08);color:white;font-size:20px;cursor:pointer}
-#panelClose:hover{background:rgba(255,255,255,.16)}
-#neptunAttribution{position:absolute;z-index:1001;right:10px;bottom:10px;background:rgba(0,0,0,.7);color:white;padding:5px 8px;border-radius:6px;font-size:11px}
-#neptunAttribution a{color:#fff;text-decoration:none}
-#neptunAttribution a:hover{text-decoration:underline}
-.emoji-marker{display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,.78);border:2px solid white;font-size:20px;box-shadow:0 2px 8px rgba(0,0,0,.5)}
-.neptun-threat-marker{display:flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;background:rgba(255,153,0,.92);border:3px solid white;font-size:21px;box-shadow:0 0 12px rgba(255,153,0,.9),0 3px 10px rgba(0,0,0,.6)}
-.neptun-alert-pulse{animation:neptunPulse 1.2s infinite}
-@keyframes neptunPulse{0%{box-shadow:0 0 5px rgba(255,0,0,.5),0 3px 10px rgba(0,0,0,.5)}50%{box-shadow:0 0 24px rgba(255,0,0,1),0 3px 10px rgba(0,0,0,.5)}100%{box-shadow:0 0 5px rgba(255,0,0,.5),0 3px 10px rgba(0,0,0,.5)}}
-@media(max-width:600px){
-#panelToggle{display:block}
-#panel{top:10px;left:10px;width:285px;max-width:calc(100vw - 20px);max-height:calc(100vh - 20px);transform:translateX(calc(-100% - 20px));opacity:0;pointer-events:none;padding-top:45px}
-#panel.panel-open{transform:translateX(0);opacity:1;pointer-events:auto}
-#panelClose{display:block}
-#panel h2{font-size:16px}
-.category-name{font-size:13px}
-#neptunAttribution{right:6px;bottom:6px;font-size:10px;padding:4px 6px}
+
+* {
+  box-sizing: border-box;
 }
-@media(max-width:380px){
-#panel{width:270px}
-#panelToggle{width:42px;height:42px;line-height:42px;font-size:22px}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: Arial, sans-serif;
+  background: #111;
 }
+
+#map {
+  width: 100%;
+  height: 100%;
+}
+
+/* =========================
+   PANEL
+========================= */
+
+#panel {
+  position: absolute;
+  z-index: 1000;
+
+  top: 10px;
+  left: 10px;
+
+  width: 300px;
+  max-width: calc(100vw - 20px);
+
+  max-height: calc(100vh - 20px);
+  overflow-y: auto;
+
+  background: rgba(20, 20, 20, 0.94);
+  color: white;
+
+  border-radius: 12px;
+  padding: 12px;
+
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45);
+
+  backdrop-filter: blur(8px);
+
+  transition:
+    transform 0.25s ease,
+    opacity 0.25s ease;
+}
+
+#panel h2 {
+  margin: 0 0 10px 0;
+  font-size: 18px;
+}
+
+.category {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  padding: 7px 4px;
+  border-radius: 7px;
+
+  cursor: pointer;
+  user-select: none;
+}
+
+.category:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.category input {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.category-name {
+  flex: 1;
+  font-size: 14px;
+}
+
+.category-count {
+  min-width: 22px;
+  padding: 2px 6px;
+
+  border-radius: 10px;
+
+  background: rgba(255, 255, 255, 0.12);
+  color: #ddd;
+
+  font-size: 11px;
+  text-align: center;
+}
+
+#status {
+  margin-top: 9px;
+  padding-top: 8px;
+
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+
+  font-size: 11px;
+  color: #aaa;
+  line-height: 1.4;
+}
+
+#alertBadge {
+  display: none;
+
+  margin-top: 8px;
+  padding: 8px;
+
+  border-radius: 8px;
+
+  background: rgba(255, 0, 0, 0.22);
+  border: 1px solid rgba(255, 60, 60, 0.6);
+
+  color: #ff7777;
+
+  font-weight: bold;
+  font-size: 13px;
+
+  text-align: center;
+
+  animation: alertPulse 1.5s infinite;
+}
+
+@keyframes alertPulse {
+
+  0% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.55;
+  }
+
+  100% {
+    opacity: 1;
+  }
+
+}
+
+/* =========================
+   PANEL BUTTON
+========================= */
+
+#panelToggle {
+  position: absolute;
+  z-index: 1100;
+
+  top: 10px;
+  left: 10px;
+
+  width: 46px;
+  height: 46px;
+
+  border: none;
+  border-radius: 12px;
+
+  background: rgba(20, 20, 20, 0.94);
+  color: white;
+
+  font-size: 24px;
+  line-height: 46px;
+
+  text-align: center;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 4px 15px rgba(0, 0, 0, 0.45);
+
+  backdrop-filter: blur(8px);
+
+  display: none;
+}
+
+#panelToggle:hover {
+  background: rgba(45, 45, 45, 0.96);
+}
+
+#panelToggle:active {
+  transform: scale(0.95);
+}
+
+/* =========================
+   CLOSE BUTTON
+========================= */
+
+#panelClose {
+  display: none;
+
+  position: absolute;
+
+  top: 8px;
+  right: 8px;
+
+  width: 34px;
+  height: 34px;
+
+  border: none;
+  border-radius: 8px;
+
+  background: rgba(255, 255, 255, 0.08);
+  color: white;
+
+  font-size: 20px;
+
+  cursor: pointer;
+}
+
+#panelClose:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+/* =========================
+   NEPTUN ATTRIBUTION
+========================= */
+
+#neptunAttribution {
+  position: absolute;
+  z-index: 1001;
+
+  right: 10px;
+  bottom: 10px;
+
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+
+  padding: 5px 8px;
+  border-radius: 6px;
+
+  font-size: 11px;
+}
+
+#neptunAttribution a {
+  color: #fff;
+  text-decoration: none;
+}
+
+#neptunAttribution a:hover {
+  text-decoration: underline;
+}
+
+/* =========================
+   MARKERS
+========================= */
+
+.emoji-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 34px;
+  height: 34px;
+
+  border-radius: 50%;
+
+  background: rgba(0, 0, 0, 0.78);
+  border: 2px solid white;
+
+  font-size: 20px;
+
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+.neptun-threat-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 38px;
+  height: 38px;
+
+  border-radius: 50%;
+
+  background: rgba(255, 153, 0, 0.92);
+  border: 3px solid white;
+
+  font-size: 21px;
+
+  box-shadow:
+    0 0 12px rgba(255, 153, 0, 0.9),
+    0 3px 10px rgba(0, 0, 0, 0.6);
+}
+
+.neptun-alert-pulse {
+  animation: neptunPulse 1.2s infinite;
+}
+
+@keyframes neptunPulse {
+
+  0% {
+    box-shadow:
+      0 0 5px rgba(255, 0, 0, 0.5),
+      0 3px 10px rgba(0, 0, 0, 0.5);
+  }
+
+  50% {
+    box-shadow:
+      0 0 24px rgba(255, 0, 0, 1),
+      0 3px 10px rgba(0, 0, 0, 0.5);
+  }
+
+  100% {
+    box-shadow:
+      0 0 5px rgba(255, 0, 0, 0.5),
+      0 3px 10px rgba(0, 0, 0, 0.5);
+  }
+
+}
+
+/* =========================
+   MOBILE PANEL
+========================= */
+
+@media (max-width: 600px) {
+
+  #panelToggle {
+    display: block;
+  }
+
+  #panel {
+    top: 10px;
+    left: 10px;
+
+    width: 285px;
+    max-width: calc(100vw - 20px);
+
+    max-height: calc(100vh - 20px);
+
+    transform: translateX(
+      calc(-100% - 20px)
+    );
+
+    opacity: 0;
+
+    pointer-events: none;
+
+    padding-top: 45px;
+  }
+
+  #panel.panel-open {
+    transform: translateX(0);
+
+    opacity: 1;
+
+    pointer-events: auto;
+  }
+
+  #panelClose {
+    display: block;
+  }
+
+  #panel h2 {
+    font-size: 16px;
+  }
+
+  .category-name {
+    font-size: 13px;
+  }
+
+  #neptunAttribution {
+    right: 6px;
+    bottom: 6px;
+
+    font-size: 10px;
+
+    padding: 4px 6px;
+  }
+
+}
+
+/* =========================
+   VERY SMALL PHONES
+========================= */
+
+@media (max-width: 380px) {
+
+  #panel {
+    width: 270px;
+  }
+
+  #panelToggle {
+    width: 42px;
+    height: 42px;
+
+    line-height: 42px;
+
+    font-size: 22px;
+  }
+
+}
+
 </style>
 </head>
+
 <body>
+
 <div id="map"></div>
-<button id="panelToggle" type="button" aria-label="Відкрити налаштування карти" title="Налаштування">☰</button>
+
+<!-- =========================
+     MOBILE PANEL BUTTON
+========================= -->
+
+<button
+  id="panelToggle"
+  type="button"
+  aria-label="Відкрити налаштування карти"
+  title="Налаштування"
+>
+  ☰
+</button>
+
 <div id="panel">
-<button id="panelClose" type="button" aria-label="Закрити налаштування" title="Закрити">✕</button>
-<h2>🗺️ МапаПодійUA — карта</h2>
-<div id="categories"></div>
-<div id="status">Завантаження...</div>
+
+  <!-- =========================
+       CLOSE PANEL
+  ========================= -->
+
+  <button
+    id="panelClose"
+    type="button"
+    aria-label="Закрити налаштування"
+    title="Закрити"
+  >
+    ✕
+  </button>
+
+  <h2>🗺️ МапаПодійUA — карта</h2>
+
+  <div id="categories"></div>
+
+  <!--
+  <div id="alertBadge">
+    🚨 УВАГА: Є ПОВІТРЯНА ТРИВОГА
+  </div>
+  -->
+
+  <div id="status">
+    Завантаження...
+  </div>
+
 </div>
+
 <div id="neptunAttribution">
-<a href="https://neptun.in.ua/" target="_blank" rel="noopener noreferrer">Дані: NEPTUN</a>
+  <a
+    href="https://neptun.in.ua/"
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    Дані: NEPTUN
+  </a>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
 <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
+
+<!-- NEPTUN SDK -->
 <script src="https://neptun.in.ua/sdk/neptun.js"></script>
 
 <script>
-const API_URL="https://script.google.com/macros/s/AKfycbyH07BGYi4eAREpB-kTuZJmO-8fgtxUN6jLmIzorJQiRzoBw4EeX2ocXQ68TcDamKVXZw/exec";
-
-const NEPTUN_URL="https://neptun.in.ua";
-const NEPTUN_ALERTS_URL=NEPTUN_URL+"/api/v1/alerts";
-const NEPTUN_THREATS_URL=NEPTUN_URL+"/api/v1/threats";
-const NEPTUN_CATEGORY_ALERT="1";
-const NEPTUN_CATEGORY_UAV="2";
-
-const RAIONS_GEOJSON_URL="https://raw.githubusercontent.com/slawomirmatuszak/ukrainian_geodata/main/rayony.geojson";
-const OBLASTS_GEOJSON_URL="https://raw.githubusercontent.com/slawomirmatuszak/ukrainian_geodata/main/regiony.geojson";
-
-const categories={
-"1":{name:"🚨 Повітряна тривога",emoji:"🚨",radius:3000,color:"#ff0000",minZoom:0,show:true},
-"2":{name:"✈️ Літає / Авіація",emoji:"✈️",radius:2500,color:"#ff9900",minZoom:0,show:true},
-"3":{name:"🔥 Вогонь / Пожежа",emoji:"🔥",radius:800,color:"#ff6600",minZoom:0,show:true},
-"4":{name:"🚓 ТЦК чи поліція",emoji:"🚓",radius:500,color:"#3388ff",minZoom:11,show:true},
-"5":{name:"💥 ДТП",emoji:"💥",radius:300,color:"#e60000",minZoom:11,show:true},
-"6":{name:"🚧 Перекрито",emoji:"🚧",radius:50,color:"#ffff00",minZoom:11,show:true},
-"7":{name:"🪚 Побут",emoji:"🪚",radius:0,color:"#888888",minZoom:14,show:true},
-"8":{name:"🌊 Болото",emoji:"🌊",radius:50,color:"#00cccc",minZoom:14,show:false},
-"9":{name:"🚑 Екстрені машини",emoji:"🚑",radius:500,color:"#ff3399",minZoom:11,show:true},
-"10":{name:"⚰️ Шана / Похорон",emoji:"⚰️",radius:0,color:"#888888",minZoom:14,show:true},
-"11":{name:"🎉 Події",emoji:"🎉",radius:0,color:"#9933ff",minZoom:14,show:true},
-"12":{name:"💡 Відключення світла",emoji:"💡",radius:500,color:"#ffd700",minZoom:11,show:true},
-"13":{name:"📰 Новини",emoji:"📰",radius:0,color:"#00aaff",minZoom:5,show:true}
-};
-
-const map=L.map("map",{zoomControl:true}).setView([47.60,32.25],6);
-
-L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{
-maxZoom:19,attribution:"© OpenStreetMap contributors"
-}).addTo(map);
-
-const sheetLayerGroup=L.layerGroup().addTo(map);
-const neptunThreatLayerGroup=L.layerGroup().addTo(map);
-const neptunRaionLayerGroup=L.layerGroup().addTo(map);
-const neptunOblastLayerGroup=L.layerGroup().addTo(map);
-
-let sheetObjects=[];
-let neptunThreats=[];
-let neptunAlerts=[];
-let neptunAlertOblasts=[];
-let raionsGeoJSON=null;
-let oblastsGeoJSON=null;
 
 /* =========================================================
-INDEXEDDB OFFLINE CACHE
+   GOOGLE APPS SCRIPT
 ========================================================= */
-const OFFLINE_DB_NAME="MapaPodiyUA_Offline";
-const OFFLINE_DB_VERSION=1;
-const OFFLINE_STORE="mapCache";
-const OFFLINE_KEY="state";
-let offlineDB=null;
-let offlineCacheSavedAt=0;
-let offlineSaveTimer=null;
-let offlineSaveInProgress=false;
-let offlineSaveAgain=false;
 
-function openOfflineDB(){
-return new Promise((resolve,reject)=>{
-if(offlineDB){resolve(offlineDB);return;}
-if(!("indexedDB" in window)){reject(new Error("IndexedDB недоступний"));return;}
-
-const request=indexedDB.open(OFFLINE_DB_NAME,OFFLINE_DB_VERSION);
-
-request.onupgradeneeded=e=>{
-const db=e.target.result;
-if(!db.objectStoreNames.contains(OFFLINE_STORE)){
-db.createObjectStore(OFFLINE_STORE);
-}
-};
-
-request.onsuccess=e=>{
-offlineDB=e.target.result;
-offlineDB.onversionchange=()=>{
-offlineDB.close();
-offlineDB=null;
-};
-resolve(offlineDB);
-};
-
-request.onerror=()=>reject(request.error||new Error("Не вдалося відкрити IndexedDB"));
-});
-}
-
-function cloneForCache(value){
-try{return JSON.parse(JSON.stringify(value));}
-catch(e){return null;}
-}
-
-function buildOfflineState(){
-return{
-version:1,
-savedAt:Date.now(),
-sheetObjects:cloneForCache(sheetObjects)||[],
-neptunThreats:cloneForCache(neptunThreats)||[],
-neptunAlerts:cloneForCache(neptunAlerts)||[],
-neptunAlertOblasts:cloneForCache(neptunAlertOblasts)||[],
-raionsGeoJSON:cloneForCache(raionsGeoJSON),
-oblastsGeoJSON:cloneForCache(oblastsGeoJSON)
-};
-}
-
-async function writeOfflineState(){
-if(offlineSaveInProgress){
-offlineSaveAgain=true;
-return;
-}
-
-offlineSaveInProgress=true;
-
-try{
-const db=await openOfflineDB();
-const state=buildOfflineState();
-
-await new Promise((resolve,reject)=>{
-const tx=db.transaction(OFFLINE_STORE,"readwrite");
-tx.objectStore(OFFLINE_STORE).put(state,OFFLINE_KEY);
-tx.oncomplete=resolve;
-tx.onerror=()=>reject(tx.error||new Error("IndexedDB write error"));
-tx.onabort=()=>reject(tx.error||new Error("IndexedDB transaction aborted"));
-});
-
-offlineCacheSavedAt=state.savedAt;
-}catch(error){
-console.warn("Не вдалося зберегти офлайн-кеш:",error);
-}finally{
-offlineSaveInProgress=false;
-
-if(offlineSaveAgain){
-offlineSaveAgain=false;
-saveOfflineState();
-}
-}
-}
-
-function saveOfflineState(){
-if(offlineSaveTimer)clearTimeout(offlineSaveTimer);
-
-offlineSaveTimer=setTimeout(()=>{
-writeOfflineState();
-},250);
-}
-
-async function loadOfflineState(){
-const db=await openOfflineDB();
-
-return new Promise((resolve,reject)=>{
-const tx=db.transaction(OFFLINE_STORE,"readonly");
-const request=tx.objectStore(OFFLINE_STORE).get(OFFLINE_KEY);
-
-request.onsuccess=()=>resolve(request.result||null);
-request.onerror=()=>reject(request.error||new Error("IndexedDB read error"));
-});
-}
-
-function formatCacheAge(timestamp){
-if(!timestamp)return"";
-const seconds=Math.max(0,Math.floor((Date.now()-timestamp)/1000));
-
-if(seconds<60)return"щойно";
-const minutes=Math.floor(seconds/60);
-if(minutes<60)return minutes+" хв тому";
-const hours=Math.floor(minutes/60);
-if(hours<24)return hours+" год тому";
-return Math.floor(hours/24)+" дн тому";
-}
-
-async function restoreOfflineState(){
-try{
-const state=await loadOfflineState();
-
-if(!state||typeof state!=="object"){
-console.log("Офлайн-кеш відсутній");
-return false;
-}
-
-if(Array.isArray(state.sheetObjects))sheetObjects=state.sheetObjects;
-if(Array.isArray(state.neptunThreats))neptunThreats=state.neptunThreats;
-if(Array.isArray(state.neptunAlerts))neptunAlerts=state.neptunAlerts;
-if(Array.isArray(state.neptunAlertOblasts))neptunAlertOblasts=state.neptunAlertOblasts;
-
-if(state.raionsGeoJSON&&Array.isArray(state.raionsGeoJSON.features)){
-raionsGeoJSON=state.raionsGeoJSON;
-}
-if(state.oblastsGeoJSON&&Array.isArray(state.oblastsGeoJSON.features)){
-oblastsGeoJSON=state.oblastsGeoJSON;
-}
-
-offlineCacheSavedAt=Number(state.savedAt)||0;
-
-renderSheetObjects();
-renderNeptunThreats();
-renderAlertZones();
-updateVisibility();
-updateAlertBadge();
-updateCategoryCounts();
-updateStatus();
-
-console.log("Офлайн-кеш відновлено",offlineCacheSavedAt);
-return true;
-}catch(error){
-console.warn("Не вдалося відновити офлайн-кеш:",error);
-return false;
-}
-}
+const API_URL =
+  "https://script.google.com/macros/s/AKfycbyH07BGYi4eAREpB-kTuZJmO-8fgtxUN6jLmIzorJQiRzoBw4EeX2ocXQ68TcDamKVXZw/exec";
 
 /* =========================================================
-CATEGORY VISIBILITY
+   NEPTUN
 ========================================================= */
-const visibleCategories={};
-Object.keys(categories).forEach(id=>visibleCategories[id]=categories[id].show);
 
-/* =========================================================
-MOBILE PANEL
-========================================================= */
-const panel=document.getElementById("panel");
-const panelToggle=document.getElementById("panelToggle");
-const panelClose=document.getElementById("panelClose");
+const NEPTUN_URL =
+  "https://neptun.in.ua";
 
-function openPanel(){
-if(!panel)return;
-panel.classList.add("panel-open");
-if(panelToggle)panelToggle.textContent="✕";
-}
-function closePanel(){
-if(!panel)return;
-panel.classList.remove("panel-open");
-if(panelToggle)panelToggle.textContent="☰";
-}
-function togglePanel(){
-if(!panel)return;
-panel.classList.contains("panel-open")?closePanel():openPanel();
-}
-if(panelToggle)panelToggle.addEventListener("click",togglePanel);
-if(panelClose)panelClose.addEventListener("click",closePanel);
+const NEPTUN_ALERTS_URL =
+  NEPTUN_URL + "/api/v1/alerts";
 
-function isMobileDevice(){return window.innerWidth<=600}
+const NEPTUN_THREATS_URL =
+  NEPTUN_URL + "/api/v1/threats";
 
-/* =========================================================
-CATEGORY PANEL
-========================================================= */
-function createCategoryPanel(){
-const container=document.getElementById("categories");
-container.innerHTML="";
-
-Object.entries(categories).forEach(([id,category])=>{
-const row=document.createElement("label");
-row.className="category";
-
-const checkbox=document.createElement("input");
-checkbox.type="checkbox";
-checkbox.checked=visibleCategories[id];
-checkbox.dataset.category=id;
-checkbox.addEventListener("change",function(){
-visibleCategories[id]=this.checked;
-updateVisibility();
-});
-
-const name=document.createElement("span");
-name.className="category-name";
-name.textContent=category.name;
-
-const count=document.createElement("span");
-count.className="category-count";
-count.id="count-"+id;
-count.textContent="0";
-
-row.appendChild(checkbox);
-row.appendChild(name);
-row.appendChild(count);
-container.appendChild(row);
-});
-}
-
-/* =========================================================
-HELPERS
-========================================================= */
-function normalizeType(type){
-return String(type??"").trim().toLowerCase();
-}
-
-function getSheetCategory(obj){
-return String(obj?.type??"").trim();
-}
-
-function createEmojiIcon(emoji,color){
-return L.divIcon({
-className:"",
-html:`<div class="emoji-marker" style="border-color:${color};box-shadow:0 0 10px ${color},0 2px 8px rgba(0,0,0,.5);">${emoji}</div>`,
-iconSize:[34,34],
-iconAnchor:[17,17]
-});
-}
-
-function createNeptunThreatIcon(type){
-let emoji="✈️";
-if(type==="uav")emoji="✈️";
-
-return L.divIcon({
-className:"",
-html:`<div class="neptun-threat-marker">${emoji}</div>`,
-iconSize:[38,38],
-iconAnchor:[19,19]
-});
-}
-
-function escapeHtml(value){
-return String(value??"")
-.replace(/&/g,"&amp;")
-.replace(/</g,"&lt;")
-.replace(/>/g,"&gt;")
-.replace(/"/g,"&quot;")
-.replace(/'/g,"&#039;");
-}
-
-function safeUrl(value){
-try{
-const url=new URL(String(value||""),location.href);
-if(url.protocol==="http:"||url.protocol==="https:")return url.href;
-}catch(e){}
-return"";
-}
-
-/* =========================================================
-SHEET OBJECT RENDER
-========================================================= */
-function renderSheetObjects(){
-sheetLayerGroup.clearLayers();
-
-sheetObjects.forEach(obj=>{
-const categoryId=getSheetCategory(obj);
-const category=categories[categoryId];
-if(!category)return;
-
-const lat=Number(obj.lat);
-const lng=Number(obj.lng);
-if(!Number.isFinite(lat)||!Number.isFinite(lng))return;
-
-const group=L.layerGroup();
-
-const marker=L.marker([lat,lng],{
-icon:createEmojiIcon(category.emoji,category.color)
-});
-
-let radius=Number(obj.radius);
-if(!Number.isFinite(radius))radius=category.radius;
-
-if(radius>0&&!obj.geojson){
-L.circle([lat,lng],{
-radius:radius,
-color:category.color,
-fillColor:category.color,
-fillOpacity:.12,
-weight:2
-}).addTo(group);
-}
-
-if(obj.geojson){
-try{
-const geo=typeof obj.geojson==="string"?JSON.parse(obj.geojson):obj.geojson;
-L.geoJSON(geo,{
-style:{
-color:category.color,
-weight:3,
-fillColor:category.color,
-fillOpacity:.18
-}
-}).addTo(group);
-}catch(error){
-console.warn("Помилка GeoJSON:",error);
-}
-}
-
-if(categoryId==="13"){
-const title=escapeHtml(obj.title||obj.desc||"Новина");
-const source=escapeHtml(obj.source||"Джерело");
-const published=escapeHtml(obj.published||"");
-const url=safeUrl(obj.url||"");
-
-marker.bindPopup(`
-<div style="min-width:220px">
-<div style="font-size:16px;font-weight:bold;margin-bottom:8px">📰 ${title}</div>
-${source?`<div style="color:#777;font-size:12px;margin-bottom:6px">Джерело: ${source}</div>`:""}
-${published?`<div style="color:#888;font-size:11px;margin-bottom:8px">${published}</div>`:""}
-${obj.desc&&obj.title?`<div style="margin-bottom:10px">${escapeHtml(obj.desc)}</div>`:""}
-${url?`<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" style="color:#0088cc;font-weight:bold">Відкрити джерело →</a>`:""}
-</div>`);
-}else{
-marker.bindPopup(`
-<b>${escapeHtml(category.name)}</b>
-<br><br>
-${obj.desc?escapeHtml(obj.desc):""}
-${obj.village?`<br><br>від ${escapeHtml(obj.village)}`:""}
-`);
-}
-
-marker.addTo(group);
-group._category=categoryId;
-group._sheetObject=true;
-group.addTo(sheetLayerGroup);
-});
-}
-
-/* =========================================================
-VISIBILITY
-========================================================= */
-function updateVisibility(){
-sheetLayerGroup.eachLayer(layer=>{
-const category=layer._category;
-
-if(visibleCategories[category]){
-if(!map.hasLayer(layer))map.addLayer(layer);
-}else{
-if(map.hasLayer(layer))map.removeLayer(layer);
-}
-});
-
-if(visibleCategories[NEPTUN_CATEGORY_UAV]){
-if(!map.hasLayer(neptunThreatLayerGroup))map.addLayer(neptunThreatLayerGroup);
-}else{
-if(map.hasLayer(neptunThreatLayerGroup))map.removeLayer(neptunThreatLayerGroup);
-}
-
-if(visibleCategories[NEPTUN_CATEGORY_ALERT]){
-if(!map.hasLayer(neptunRaionLayerGroup))map.addLayer(neptunRaionLayerGroup);
-if(!map.hasLayer(neptunOblastLayerGroup))map.addLayer(neptunOblastLayerGroup);
-}else{
-if(map.hasLayer(neptunRaionLayerGroup))map.removeLayer(neptunRaionLayerGroup);
-if(map.hasLayer(neptunOblastLayerGroup))map.removeLayer(neptunOblastLayerGroup);
-}
-
-updateCategoryCounts();
-}
-
-/* =========================================================
-COUNTS
-========================================================= */
-function updateCategoryCounts(){
-const counts={};
-Object.keys(categories).forEach(id=>counts[id]=0);
-
-sheetObjects.forEach(obj=>{
-const type=getSheetCategory(obj);
-if(counts[type]!==undefined)counts[type]++;
-});
-
-neptunThreats.forEach(threat=>{
-const category=getNeptunThreatCategory(threat);
-if(counts[category]!==undefined)counts[category]++;
-});
-
-counts["1"]+=neptunAlerts.length;
-counts["1"]+=neptunAlertOblasts.length;
-
-Object.keys(categories).forEach(id=>{
-const element=document.getElementById("count-"+id);
-if(element)element.textContent=counts[id];
-});
-});
-
-/* =========================================================
-SHEET
-========================================================= */
-async function loadSheetData(){
-try{
-const response=await fetch(API_URL+"?t="+Date.now(),{cache:"no-store"});
-if(!response.ok)throw new Error("HTTP "+response.status);
-
-const data=await response.json();
-if(!Array.isArray(data))throw new Error("API повернув не масив");
-
-sheetObjects=data;
-renderSheetObjects();
-updateVisibility();
-updateStatus();
-saveOfflineState();
-}catch(error){
-console.error("Google Sheets:",error);
-updateStatus();
-}
-}
-
-/* =========================================================
-NAMES / ALERT MATCH
-========================================================= */
-function normalizeName(value){
-return String(value||"")
-.toLowerCase()
-.replaceAll("’","'")
-.replaceAll("`","'")
-.replace(/область$/u,"")
-.replace(/район$/u,"")
-.replace(/області$/u,"")
-.replace(/району$/u,"")
-.replace(/[^а-яіїєґa-z0-9]/giu,"");
-}
-
-function getFeatureNames(feature){
-const props=feature?.properties||{};
-const values=[];
-Object.keys(props).forEach(key=>{
-const value=props[key];
-if(typeof value==="string")values.push(value);
-});
-return values;
-}
-
-function featureMatchesAlert(feature,alert){
-const alertName=normalizeName(alert?.name);
-if(!alertName)return false;
-return getFeatureNames(feature).some(name=>normalizeName(name)===alertName);
-}
-
-function findRaionAlert(feature){
-return neptunAlerts.find(alert=>featureMatchesAlert(feature,alert))||null;
-}
-
-function findOblastAlert(feature){
-return neptunAlertOblasts.find(alert=>featureMatchesAlert(feature,alert))||null;
-}
-
-function getAlertStyle(alert,isOblast){
-const level=String(alert?.level||"").toLowerCase();
-
-if(level==="red"){
-return{color:"#ff0000",weight:isOblast?4:3,opacity:1,fillColor:"#ff0000",fillOpacity:isOblast?.16:.28};
-}
-
-if(level==="yellow"){
-return{color:"#ffcc00",weight:isOblast?3:2,opacity:1,fillColor:"#ffcc00",fillOpacity:isOblast?.10:.18};
-}
-
-return{color:"#ff0000",weight:3,opacity:1,fillColor:"#ff0000",fillOpacity:.18};
-}
-
-/* =========================================================
-GEOJSON
-========================================================= */
-async function loadNeptunGeoJSON(){
-try{
-const [raionResponse,oblastResponse]=await Promise.all([
-fetch(RAIONS_GEOJSON_URL+"?t="+Date.now(),{cache:"no-store"}),
-fetch(OBLASTS_GEOJSON_URL+"?t="+Date.now(),{cache:"no-store"})
-]);
-
-if(!raionResponse.ok)throw new Error("Raions GeoJSON HTTP "+raionResponse.status);
-if(!oblastResponse.ok)throw new Error("Oblasts GeoJSON HTTP "+oblastResponse.status);
-
-const [raionData,oblastData]=await Promise.all([
-raionResponse.json(),
-oblastResponse.json()
-]);
-
-if(!raionData||!Array.isArray(raionData.features))throw new Error("Некоректний GeoJSON районів");
-if(!oblastData||!Array.isArray(oblastData.features))throw new Error("Некоректний GeoJSON областей");
-
-raionsGeoJSON=raionData;
-oblastsGeoJSON=oblastData;
-
-renderAlertZones();
-updateStatus();
-saveOfflineState();
-
-console.log("GeoJSON районів та областей завантажено");
-}catch(error){
-console.error("GeoJSON NEPTUN:",error);
-updateStatus();
-}
-}
-
-/* =========================================================
-ALERT ZONES
-========================================================= */
-function renderAlertZones(){
-neptunRaionLayerGroup.clearLayers();
-neptunOblastLayerGroup.clearLayers();
-
-if(oblastsGeoJSON&&Array.isArray(oblastsGeoJSON.features)){
-oblastsGeoJSON.features.forEach(feature=>{
-const alert=findOblastAlert(feature);
-if(!alert)return;
-
-const layer=L.geoJSON(feature,{
-style:getAlertStyle(alert,true),
-interactive:false
-});
-
-layer._category=NEPTUN_CATEGORY_ALERT;
-layer._neptunAlert=true;
-layer._neptunOblast=true;
-
-layer.bindTooltip(`🚨 ${escapeHtml(alert.name)}<br>Рівень: ${escapeHtml(alert.level||"невідомий")}`,{sticky:true});
-layer.addTo(neptunOblastLayerGroup);
-});
-}
-
-if(raionsGeoJSON&&Array.isArray(raionsGeoJSON.features)){
-raionsGeoJSON.features.forEach(feature=>{
-const alert=findRaionAlert(feature);
-if(!alert)return;
-
-const layer=L.geoJSON(feature,{
-style:getAlertStyle(alert,false),
-interactive:false
-});
-
-layer._category=NEPTUN_CATEGORY_ALERT;
-layer._neptunAlert=true;
-layer._neptunRaion=true;
-
-layer.bindTooltip(`🚨 ${escapeHtml(alert.name)}<br>Рівень: ${escapeHtml(alert.level||"невідомий")}`,{sticky:true});
-layer.addTo(neptunRaionLayerGroup);
-});
-}
-
-updateVisibility();
-}
-
-/* =========================================================
-THREATS
-========================================================= */
-function getNeptunThreatCategory(threat){
-const type=normalizeType(threat?.type);
-
-if(type==="uav")return NEPTUN_CATEGORY_UAV;
-if(type==="missile"||type==="rocket"||type==="aircraft"||type==="plane")return NEPTUN_CATEGORY_UAV;
-return NEPTUN_CATEGORY_UAV;
-}
-
-function getThreatPosition(threat){
-try{
-if(window.NEPTUN&&typeof NEPTUN.predict==="function"){
-const predicted=NEPTUN.predict(threat,Date.now());
-
-if(predicted&&Number.isFinite(Number(predicted.lat))&&Number.isFinite(Number(predicted.lon))){
-return[Number(predicted.lat),Number(predicted.lon)];
-}
-}
-}catch(error){
-console.warn("NEPTUN predict error:",error);
-}
-
-if(Number.isFinite(Number(threat?.lat))&&Number.isFinite(Number(threat?.lon))){
-return[Number(threat.lat),Number(threat.lon)];
-}
-
-return null;
-}
-
-function getThreatTitle(threat){
-const type=normalizeType(threat?.type);
-if(type==="uav")return"✈️ Шахед / БпЛА";
-if(threat?.title)return String(threat.title);
-if(threat?.name)return String(threat.name);
-return"✈️ Повітряна загроза";
-}
-
-function renderNeptunThreats(){
-neptunThreatLayerGroup.clearLayers();
-
-neptunThreats.forEach(threat=>{
-if(threat?.areaOnly===true)return;
-
-const position=getThreatPosition(threat);
-if(!position)return;
-
-const category=getNeptunThreatCategory(threat);
-if(category!==NEPTUN_CATEGORY_UAV)return;
-
-const marker=L.marker(position,{icon:createNeptunThreatIcon(threat.type)});
-
-marker.bindPopup(`
-<b>${escapeHtml(getThreatTitle(threat))}</b>
-<br><br>
-Будьте обережні та залишайтеся в безпеці!
-${threat.advisory?`<br><br>⚠️ Спостереження (advisory)`:""}
-<br><br>від NEPTUN
-`);
-
-marker._category=NEPTUN_CATEGORY_UAV;
-marker._neptunThreat=true;
-marker.addTo(neptunThreatLayerGroup);
-});
-
-updateVisibility();
-}
-
-/* =========================================================
-NEPTUN ALERTS
-========================================================= */
-async function loadNeptunAlerts(){
-try{
-const response=await fetch(NEPTUN_ALERTS_URL+"?t="+Date.now(),{cache:"no-store"});
-if(!response.ok)throw new Error("HTTP "+response.status);
-
-const data=await response.json();
-
-if(!data||!Array.isArray(data.raions)||!Array.isArray(data.oblasts)){
-throw new Error("NEPTUN alerts повернув некоректну структуру");
-}
-
-neptunAlerts=data.raions;
-neptunAlertOblasts=data.oblasts;
-
-renderAlertZones();
-updateAlertBadge();
-updateCategoryCounts();
-updateStatus();
-saveOfflineState();
-
-}catch(error){
-console.error("NEPTUN alerts:",error);
-updateStatus();
-}
-}
-
-/* =========================================================
-NEPTUN THREATS
-========================================================= */
-async function loadNeptunThreats(){
-try{
-const response=await fetch(NEPTUN_THREATS_URL+"?t="+Date.now(),{cache:"no-store"});
-if(!response.ok)throw new Error("HTTP "+response.status);
-
-const data=await response.json();
-
-let nextThreats=null;
-
-if(Array.isArray(data)){
-nextThreats=data;
-}else if(Array.isArray(data?.threats)){
-nextThreats=data.threats;
-}else{
-throw new Error("NEPTUN threats повернув некоректну структуру");
-}
-
-neptunThreats=nextThreats;
-
-renderNeptunThreats();
-updateCategoryCounts();
-updateStatus();
-saveOfflineState();
-
-}catch(error){
-console.error("NEPTUN threats:",error);
-updateStatus();
-}
-}
-
-/* =========================================================
-BADGE
-========================================================= */
-function updateAlertBadge(){
-const badge=document.getElementById("alertBadge");
-if(!badge)return;
-
-const hasAlerts=neptunAlerts.length>0||neptunAlertOblasts.length>0;
-badge.style.display=hasAlerts?"block":"none";
-}
-
-/* =========================================================
-STATUS
-========================================================= */
-function updateStatus(){
-const status=document.getElementById("status");
-if(!status)return;
-
-const alerts=neptunAlerts.length+neptunAlertOblasts.length;
-
-const uavs=neptunThreats.filter(
-threat=>getNeptunThreatCategory(threat)===NEPTUN_CATEGORY_UAV
-).length;
-
-const news=sheetObjects.filter(
-obj=>getSheetCategory(obj)==="13"
-).length;
-
-let html=`
-Google Sheets: ${sheetObjects.length}
-<br>
-📰 Новин: ${news}
-<br>
-NEPTUN тривог: ${alerts}
-<br>
-NEPTUN БпЛА: ${uavs}
-`;
-
-if(!navigator.onLine){
-html+=offlineCacheSavedAt
-?`<br><span style="color:#ffd166">📴 Офлайн: збережені дані (${formatCacheAge(offlineCacheSavedAt)})</span>`
-:`<br><span style="color:#ffd166">📴 Офлайн: кешу ще немає</span>`;
-}else if(offlineCacheSavedAt){
-html+=`<br><span style="color:#8fda8f">💾 Кеш: ${formatCacheAge(offlineCacheSavedAt)}</span>`;
-}
-
-status.innerHTML=html;
-}
-
-/* =========================================================
-NEPTUN REALTIME
-========================================================= */
-let neptunRealtimeClient=null;
-
-function startNeptunRealtime(){
-try{
-if(!window.NEPTUN||typeof NEPTUN.RealtimeClient!=="function"){
-console.warn("NEPTUN RealtimeClient недоступний");
-return;
-}
-
-neptunRealtimeClient=new NEPTUN.RealtimeClient(NEPTUN_URL);
-
-neptunRealtimeClient.subscribe(snapshot=>{
-console.log("NEPTUN realtime snapshot:",snapshot);
-
-let changed=false;
-
-if(Array.isArray(snapshot?.threats)){
-neptunThreats=snapshot.threats;
-changed=true;
-renderNeptunThreats();
-}
-
-if(Array.isArray(snapshot?.alerts)){
-neptunAlerts=snapshot.alerts;
-changed=true;
-}
-
-if(Array.isArray(snapshot?.alertOblasts)){
-neptunAlertOblasts=snapshot.alertOblasts;
-changed=true;
-}
-
-if(Array.isArray(snapshot?.alerts)||Array.isArray(snapshot?.alertOblasts)){
-renderAlertZones();
-}
-
-updateAlertBadge();
-updateCategoryCounts();
-updateStatus();
-
-if(changed)saveOfflineState();
-});
-
-neptunRealtimeClient.start();
-console.log("NEPTUN realtime запущено");
-}catch(error){
-console.error("NEPTUN realtime:",error);
-}
-}
-
-/* =========================================================
-ONLINE / OFFLINE
-========================================================= */
-let onlineRefreshTimer=null;
-
-window.addEventListener("online",()=>{
-console.log("Інтернет з'явився — оновлюємо дані");
-updateStatus();
-
-if(onlineRefreshTimer)clearTimeout(onlineRefreshTimer);
-
-onlineRefreshTimer=setTimeout(()=>{
-loadNeptunGeoJSON();
-loadSheetData();
-loadNeptunAlerts();
-loadNeptunThreats();
-},500);
-});
-
-window.addEventListener("offline",()=>{
-console.log("З'єднання втрачено — використовуємо IndexedDB");
-updateStatus();
-});
-
-/* =========================================================
-MAP ZOOM / RESIZE
-========================================================= */
-map.on("zoomend",function(){
-renderNeptunThreats();
-});
-
-window.addEventListener("resize",function(){
-if(window.innerWidth>600){
-panel.classList.remove("panel-open");
-panelToggle.textContent="☰";
-}
-});
-
-/* =========================================================
-INITIALIZATION
-========================================================= */
-async function init(){
-createCategoryPanel();
+const NEPTUN_CATEGORY_ALERT = "1";
+const NEPTUN_CATEGORY_UAV = "2";
 
 /*
- * КРИТИЧНО:
- * Спочатку відновлюємо старі дані з IndexedDB.
- * Тому навіть при повній відсутності мережі
- * маркери з минулого запуску одразу повертаються.
+ * NEPTUN API не отдаёт нам готовые границы через указанные
+ * endpoints GeoJSON, поэтому используем публичные GeoJSON
+ * административных границ Украины.
  */
-await restoreOfflineState();
+
+const RAIONS_GEOJSON_URL =
+  "https://raw.githubusercontent.com/slawomirmatuszak/ukrainian_geodata/main/rayony.geojson";
+
+const OBLASTS_GEOJSON_URL =
+  "https://raw.githubusercontent.com/slawomirmatuszak/ukrainian_geodata/main/regiony.geojson";
+
+/* =========================================================
+   КАТЕГОРІЇ
+========================================================= */
+
+const categories = {
+
+  "1": {
+    name: "🚨 Повітряна тривога",
+    emoji: "🚨",
+    radius: 3000,
+    color: "#ff0000",
+    minZoom: 0,
+    show: true
+  },
+
+  "2": {
+    name: "✈️ Літає / Авіація",
+    emoji: "✈️",
+    radius: 2500,
+    color: "#ff9900",
+    minZoom: 0,
+    show: true
+  },
+
+  "3": {
+    name: "🔥 Вогонь / Пожежа",
+    emoji: "🔥",
+    radius: 800,
+    color: "#ff6600",
+    minZoom: 0,
+    show: true
+  },
+
+  "4": {
+    name: "🚓 ТЦК чи поліція",
+    emoji: "🚓",
+    radius: 500,
+    color: "#3388ff",
+    minZoom: 11,
+    show: true
+  },
+
+  "5": {
+    name: "💥 ДТП",
+    emoji: "💥",
+    radius: 300,
+    color: "#e60000",
+    minZoom: 11,
+    show: true
+  },
+
+  "6": {
+    name: "🚧 Перекрито",
+    emoji: "🚧",
+    radius: 50,
+    color: "#ffff00",
+    minZoom: 11,
+    show: true
+  },
+
+  "7": {
+    name: "🪚 Побут",
+    emoji: "🪚",
+    radius: 0,
+    color: "#888888",
+    minZoom: 14,
+    show: true
+  },
+
+  "8": {
+    name: "🌊 Болото",
+    emoji: "🌊",
+    radius: 50,
+    color: "#00cccc",
+    minZoom: 14,
+    show: false
+  },
+
+  "9": {
+    name: "🚑 Екстрені машини",
+    emoji: "🚑",
+    radius: 500,
+    color: "#ff3399",
+    minZoom: 11,
+    show: true
+  },
+
+  "10": {
+    name: "⚰️ Шана / Похорон",
+    emoji: "⚰️",
+    radius: 0,
+    color: "#888888",
+    minZoom: 14,
+    show: true
+  },
+
+  "11": {
+    name: "🎉 Події",
+    emoji: "🎉",
+    radius: 0,
+    color: "#9933ff",
+    minZoom: 14,
+    show: true
+  },
+
+  "12": {
+    name: "💡 Відключення світла",
+    emoji: "💡",
+    radius: 500,
+    color: "#ffd700",
+    minZoom: 11,
+    show: true
+  },
+
+  "13": {
+    name: "📰 Новини",
+    emoji: "📰",
+    radius: 0,
+    color: "#00aaff",
+    minZoom: 5,
+    show: true
+  }
+
+};
+
+/* =========================================================
+   MAP
+========================================================= */
+
+const map =
+  L.map("map", {
+    zoomControl: true
+  }).setView([47.60, 32.25], 6);
+
+/* =========================================================
+   TILE
+========================================================= */
+
+L.tileLayer(
+  "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+  {
+    maxZoom: 19,
+    attribution:
+      "© OpenStreetMap contributors"
+  }
+).addTo(map);
+
+/* =========================================================
+   LAYERS
+========================================================= */
+
+const sheetLayerGroup =
+  L.layerGroup().addTo(map);
+
+const neptunThreatLayerGroup =
+  L.layerGroup().addTo(map);
+
+const neptunRaionLayerGroup =
+  L.layerGroup().addTo(map);
+
+const neptunOblastLayerGroup =
+  L.layerGroup().addTo(map);
+
+/* =========================================================
+   DATA
+========================================================= */
+
+let sheetObjects = [];
+
+let neptunThreats = [];
+
+let neptunAlerts = [];
+
+let neptunAlertOblasts = [];
+
+let raionsGeoJSON = null;
+
+let oblastsGeoJSON = null;
+
+/* =========================================================
+   OFFLINE INDEXEDDB
+========================================================= */
 
 /*
- * Після відновлення кешу пробуємо отримати свіжі дані.
- * Помилка мережі НЕ очищає змінні та НЕ очищає IndexedDB.
+ * У IndexedDB зберігаємо весь стан карти.
+ *
+ * Це важливо:
+ *
+ * Google Sheets
+ * NEPTUN threats
+ * NEPTUN alerts
+ * GeoJSON
+ *
+ * після успішного онлайн-завантаження залишаються
+ * доступними навіть після повного закриття браузера.
  */
-await Promise.allSettled([
-loadNeptunGeoJSON(),
-loadSheetData(),
-loadNeptunAlerts(),
-loadNeptunThreats()
-]);
 
-startNeptunRealtime();
+const OFFLINE_DB_NAME =
+  "MapaPodiyUA_Offline";
 
-setInterval(loadSheetData,10000);
-setInterval(loadNeptunAlerts,5000);
-setInterval(loadNeptunThreats,5000);
+const OFFLINE_DB_VERSION = 1;
 
-updateVisibility();
-updateStatus();
+const OFFLINE_STORE_NAME =
+  "mapCache";
+
+const OFFLINE_CACHE_KEY =
+  "state";
+
+let offlineDBPromise = null;
+
+let offlineCacheSavedAt = 0;
+
+let offlineCacheLoaded = false;
+
+let offlineWriteQueue =
+  Promise.resolve();
+
+/* =========================================================
+   OPEN INDEXEDDB
+========================================================= */
+
+function openOfflineDB() {
+
+  if (offlineDBPromise) {
+    return offlineDBPromise;
+  }
+
+  offlineDBPromise =
+    new Promise((resolve, reject) => {
+
+      if (!("indexedDB" in window)) {
+
+        reject(
+          new Error(
+            "IndexedDB не підтримується браузером"
+          )
+        );
+
+        return;
+      }
+
+      const request =
+        indexedDB.open(
+          OFFLINE_DB_NAME,
+          OFFLINE_DB_VERSION
+        );
+
+      request.onupgradeneeded =
+        function(event) {
+
+          const db =
+            event.target.result;
+
+          if (
+            !db.objectStoreNames.contains(
+              OFFLINE_STORE_NAME
+            )
+          ) {
+
+            db.createObjectStore(
+              OFFLINE_STORE_NAME
+            );
+
+          }
+
+        };
+
+      request.onsuccess =
+        function(event) {
+
+          const db =
+            event.target.result;
+
+          db.onversionchange =
+            function() {
+
+              db.close();
+
+            };
+
+          resolve(db);
+
+        };
+
+      request.onerror =
+        function() {
+
+          reject(
+            request.error ||
+            new Error(
+              "Не вдалося відкрити IndexedDB"
+            )
+          );
+
+        };
+
+    });
+
+  return offlineDBPromise;
+
 }
+
+/* =========================================================
+   SAVE OFFLINE STATE
+========================================================= */
+
+function saveOfflineState() {
+
+  /*
+   * Черга потрібна тому, що realtime NEPTUN
+   * та REST можуть оновлювати дані майже одночасно.
+   *
+   * Ми не допускаємо паралельних записів,
+   * які можуть перетерти один одного.
+   */
+
+  offlineWriteQueue =
+    offlineWriteQueue
+      .then(async () => {
+
+        const db =
+          await openOfflineDB();
+
+        const state = {
+
+          version:
+            OFFLINE_DB_VERSION,
+
+          savedAt:
+            Date.now(),
+
+          sheetObjects:
+            Array.isArray(sheetObjects)
+              ? sheetObjects
+              : [],
+
+          neptunThreats:
+            Array.isArray(neptunThreats)
+              ? neptunThreats
+              : [],
+
+          neptunAlerts:
+            Array.isArray(neptunAlerts)
+              ? neptunAlerts
+              : [],
+
+          neptunAlertOblasts:
+            Array.isArray(neptunAlertOblasts)
+              ? neptunAlertOblasts
+              : [],
+
+          raionsGeoJSON:
+            raionsGeoJSON || null,
+
+          oblastsGeoJSON:
+            oblastsGeoJSON || null
+
+        };
+
+        await new Promise(
+          (resolve, reject) => {
+
+            const transaction =
+              db.transaction(
+                OFFLINE_STORE_NAME,
+                "readwrite"
+              );
+
+            const store =
+              transaction.objectStore(
+                OFFLINE_STORE_NAME
+              );
+
+            const request =
+              store.put(
+                state,
+                OFFLINE_CACHE_KEY
+              );
+
+            request.onsuccess =
+              function() {
+                resolve();
+              };
+
+            request.onerror =
+              function() {
+
+                reject(
+                  request.error ||
+                  new Error(
+                    "IndexedDB put error"
+                  )
+                );
+
+              };
+
+          }
+        );
+
+        offlineCacheSavedAt =
+          state.savedAt;
+
+        console.log(
+          "OFFLINE: стан карти збережено",
+          new Date(state.savedAt)
+        );
+
+      })
+      .catch(error => {
+
+        /*
+         * Помилка кешу не повинна ламати карту.
+         */
+
+        console.warn(
+          "OFFLINE: помилка збереження:",
+          error
+        );
+
+      });
+
+  return offlineWriteQueue;
+
+}
+
+/* =========================================================
+   LOAD OFFLINE STATE
+========================================================= */
+
+async function loadOfflineState() {
+
+  try {
+
+    const db =
+      await openOfflineDB();
+
+    const state =
+      await new Promise(
+        (resolve, reject) => {
+
+          const transaction =
+            db.transaction(
+              OFFLINE_STORE_NAME,
+              "readonly"
+            );
+
+          const store =
+            transaction.objectStore(
+              OFFLINE_STORE_NAME
+            );
+
+          const request =
+            store.get(
+              OFFLINE_CACHE_KEY
+            );
+
+          request.onsuccess =
+            function() {
+
+              resolve(
+                request.result || null
+              );
+
+            };
+
+          request.onerror =
+            function() {
+
+              reject(
+                request.error ||
+                new Error(
+                  "IndexedDB get error"
+                )
+              );
+
+            };
+
+        }
+      );
+
+    if (!state) {
+
+      console.log(
+        "OFFLINE: збережених даних немає"
+      );
+
+      return null;
+
+    }
+
+    if (
+      state.version !==
+      OFFLINE_DB_VERSION
+    ) {
+
+      console.warn(
+        "OFFLINE: версія кешу застаріла"
+      );
+
+      return null;
+
+    }
+
+    return state;
+
+  } catch (error) {
+
+    console.warn(
+      "OFFLINE: помилка читання:",
+      error
+    );
+
+    return null;
+
+  }
+
+}
+
+/* =========================================================
+   FORMAT CACHE AGE
+========================================================= */
+
+function formatCacheAge(timestamp) {
+
+  if (
+    !timestamp ||
+    !Number.isFinite(
+      Number(timestamp)
+    )
+  ) {
+
+    return "невідомо";
+
+  }
+
+  const diff =
+    Math.max(
+      0,
+      Date.now() -
+      Number(timestamp)
+    );
+
+  const seconds =
+    Math.floor(
+      diff / 1000
+    );
+
+  if (seconds < 60) {
+
+    return (
+      seconds +
+      " сек. тому"
+    );
+
+  }
+
+  const minutes =
+    Math.floor(
+      seconds / 60
+    );
+
+  if (minutes < 60) {
+
+    return (
+      minutes +
+      " хв. тому"
+    );
+
+  }
+
+  const hours =
+    Math.floor(
+      minutes / 60
+    );
+
+  if (hours < 24) {
+
+    return (
+      hours +
+      " год. тому"
+    );
+
+  }
+
+  const days =
+    Math.floor(
+      hours / 24
+    );
+
+  return (
+    days +
+    " дн. тому"
+  );
+
+}
+
+/* =========================================================
+   RESTORE OFFLINE STATE
+========================================================= */
+
+async function restoreOfflineState() {
+
+  const state =
+    await loadOfflineState();
+
+  if (!state) {
+
+    return false;
+
+  }
+
+  /*
+   * Перевіряємо кожне поле окремо.
+   *
+   * Це захищає від пошкодженого/неповного кешу.
+   */
+
+  if (
+    Array.isArray(
+      state.sheetObjects
+    )
+  ) {
+
+    sheetObjects =
+      state.sheetObjects;
+
+  }
+
+  if (
+    Array.isArray(
+      state.neptunThreats
+    )
+  ) {
+
+    neptunThreats =
+      state.neptunThreats;
+
+  }
+
+  if (
+    Array.isArray(
+      state.neptunAlerts
+    )
+  ) {
+
+    neptunAlerts =
+      state.neptunAlerts;
+
+  }
+
+  if (
+    Array.isArray(
+      state.neptunAlertOblasts
+    )
+  ) {
+
+    neptunAlertOblasts =
+      state.neptunAlertOblasts;
+
+  }
+
+  if (
+    state.raionsGeoJSON &&
+    typeof state.raionsGeoJSON ===
+      "object"
+  ) {
+
+    raionsGeoJSON =
+      state.raionsGeoJSON;
+
+  }
+
+  if (
+    state.oblastsGeoJSON &&
+    typeof state.oblastsGeoJSON ===
+      "object"
+  ) {
+
+    oblastsGeoJSON =
+      state.oblastsGeoJSON;
+
+  }
+
+  offlineCacheSavedAt =
+    Number(state.savedAt) || 0;
+
+  offlineCacheLoaded = true;
+
+  /*
+   * Спочатку відновлюємо кешовану карту.
+   */
+
+  renderSheetObjects();
+
+  renderNeptunThreats();
+
+  renderAlertZones();
+
+  updateVisibility();
+
+  updateAlertBadge();
+
+  updateCategoryCounts();
+
+  updateStatus();
+
+  console.log(
+    "OFFLINE: кеш відновлено",
+    state
+  );
+
+  return true;
+
+}
+
+/* =========================================================
+   OFFLINE STATUS
+========================================================= */
+
+function getOfflineStatusText() {
+
+  if (!offlineCacheLoaded) {
+
+    return "Офлайн: збережених даних немає";
+
+  }
+
+  if (offlineCacheSavedAt) {
+
+    return (
+      "Офлайн: показано збережені дані<br>" +
+      "Кеш: " +
+      formatCacheAge(
+        offlineCacheSavedAt
+      )
+    );
+
+  }
+
+  return "Офлайн: показано збережені дані";
+
+}
+
+/* =========================================================
+   ONLINE / OFFLINE EVENTS
+========================================================= */
+
+window.addEventListener(
+  "offline",
+  function() {
+
+    updateStatus();
+
+  }
+);
+
+window.addEventListener(
+  "online",
+  function() {
+
+    console.log(
+      "Мережа знову доступна — оновлюємо карту"
+    );
+
+    updateStatus();
+
+    /*
+     * Одразу просимо актуальні дані.
+     */
+
+    loadSheetData();
+
+    loadNeptunAlerts();
+
+    loadNeptunThreats();
+
+    loadNeptunGeoJSON();
+
+  }
+);
+
+/* =========================================================
+   CATEGORY VISIBILITY
+========================================================= */
+
+const visibleCategories = {};
+
+Object.keys(categories).forEach(
+  id => {
+
+    visibleCategories[id] =
+      categories[id].show;
+
+  }
+);
+
+/* =========================================================
+   MOBILE PANEL
+========================================================= */
+
+const panel =
+  document.getElementById("panel");
+
+const panelToggle =
+  document.getElementById(
+    "panelToggle"
+  );
+
+const panelClose =
+  document.getElementById(
+    "panelClose"
+  );
+
+function openPanel() {
+
+  if (!panel) {
+    return;
+  }
+
+  panel.classList.add(
+    "panel-open"
+  );
+
+  if (panelToggle) {
+
+    panelToggle.textContent =
+      "✕";
+
+  }
+
+}
+
+function closePanel() {
+
+  if (!panel) {
+    return;
+  }
+
+  panel.classList.remove(
+    "panel-open"
+  );
+
+  if (panelToggle) {
+
+    panelToggle.textContent =
+      "☰";
+
+  }
+
+}
+
+function togglePanel() {
+
+  if (!panel) {
+    return;
+  }
+
+  if (
+    panel.classList.contains(
+      "panel-open"
+    )
+  ) {
+
+    closePanel();
+
+  } else {
+
+    openPanel();
+
+  }
+
+}
+
+if (panelToggle) {
+
+  panelToggle.addEventListener(
+    "click",
+    togglePanel
+  );
+
+}
+
+if (panelClose) {
+
+  panelClose.addEventListener(
+    "click",
+    closePanel
+  );
+
+}
+
+/*
+ * На телефоні після вибору категорії
+ * панель автоматично закривається.
+ *
+ * Це дозволяє одразу бачити карту.
+ */
+
+function isMobileDevice() {
+
+  return window.innerWidth <= 600;
+
+}
+
+/* =========================================================
+   CATEGORY PANEL
+========================================================= */
+
+function createCategoryPanel() {
+
+  const container =
+    document.getElementById(
+      "categories"
+    );
+
+  container.innerHTML = "";
+
+  Object.entries(categories).forEach(
+    ([id, category]) => {
+
+      const row =
+        document.createElement(
+          "label"
+        );
+
+      row.className =
+        "category";
+
+      const checkbox =
+        document.createElement(
+          "input"
+        );
+
+      checkbox.type =
+        "checkbox";
+
+      checkbox.checked =
+        visibleCategories[id];
+
+      checkbox.dataset.category =
+        id;
+
+      checkbox.addEventListener(
+        "change",
+        function() {
+
+          visibleCategories[id] =
+            this.checked;
+
+          updateVisibility();
+
+          if (isMobileDevice()) {
+
+            closePanel();
+
+          }
+
+        }
+      );
+
+      const name =
+        document.createElement(
+          "span"
+        );
+
+      name.className =
+        "category-name";
+
+      name.textContent =
+        category.name;
+
+      const count =
+        document.createElement(
+          "span"
+        );
+
+      count.className =
+        "category-count";
+
+      count.id =
+        "count-" + id;
+
+      count.textContent =
+        "0";
+
+      row.appendChild(
+        checkbox
+      );
+
+      row.appendChild(
+        name
+      );
+
+      row.appendChild(
+        count
+      );
+
+      container.appendChild(
+        row
+      );
+
+    }
+  );
+
+}
+
+/* =========================================================
+   NORMALIZE TYPE
+========================================================= */
+
+function normalizeType(type) {
+
+  return String(
+    type ?? ""
+  )
+    .trim()
+    .toLowerCase();
+
+}
+
+/* =========================================================
+   SHEET OBJECT CATEGORY
+========================================================= */
+
+function getSheetCategory(obj) {
+
+  return String(
+    obj.type ?? ""
+  ).trim();
+
+}
+
+/* =========================================================
+   EMOJI ICON
+========================================================= */
+
+function createEmojiIcon(
+  emoji,
+  color
+) {
+
+  return L.divIcon({
+
+    className: "",
+
+    html:
+      `<div
+        class="emoji-marker"
+        style="
+          border-color:${color};
+          box-shadow:
+            0 0 10px ${color},
+            0 2px 8px rgba(0,0,0,.5);
+        "
+      >${emoji}</div>`,
+
+    iconSize: [34, 34],
+
+    iconAnchor: [17, 17]
+
+  });
+
+}
+
+/* =========================================================
+   NEPTUN UAV ICON
+========================================================= */
+
+function createNeptunThreatIcon(
+  type
+) {
+
+  let emoji =
+    "✈️";
+
+  if (type === "uav") {
+
+    emoji =
+      "✈️";
+
+  }
+
+  return L.divIcon({
+
+    className: "",
+
+    html:
+      `<div
+        class="neptun-threat-marker"
+      >${emoji}</div>`,
+
+    iconSize: [38, 38],
+
+    iconAnchor: [19, 19]
+
+  });
+
+}
+
+/* =========================================================
+   SHEET OBJECT RENDER
+========================================================= */
+
+function renderSheetObjects() {
+
+  sheetLayerGroup.clearLayers();
+
+  sheetObjects.forEach(
+    obj => {
+
+      const categoryId =
+        getSheetCategory(obj);
+
+      const category =
+        categories[categoryId];
+
+      if (!category) {
+        return;
+      }
+
+      const lat =
+        Number(obj.lat);
+
+      const lng =
+        Number(obj.lng);
+
+      if (
+        !Number.isFinite(lat) ||
+        !Number.isFinite(lng)
+      ) {
+
+        return;
+
+      }
+
+      const group =
+        L.layerGroup();
+
+      const marker =
+        L.marker(
+          [lat, lng],
+          {
+            icon:
+              createEmojiIcon(
+                category.emoji,
+                category.color
+              )
+          }
+        );
+
+      let radius =
+        Number(obj.radius);
+
+      if (
+        !Number.isFinite(radius)
+      ) {
+
+        radius =
+          category.radius;
+
+      }
+
+      if (
+        radius > 0 &&
+        !obj.geojson
+      ) {
+
+        L.circle(
+          [lat, lng],
+          {
+
+            radius: radius,
+
+            color:
+              category.color,
+
+            fillColor:
+              category.color,
+
+            fillOpacity:
+              0.12,
+
+            weight:
+              2
+
+          }
+        ).addTo(group);
+
+      }
+
+      if (obj.geojson) {
+
+        try {
+
+          const geo =
+            typeof obj.geojson ===
+              "string"
+              ? JSON.parse(
+                  obj.geojson
+                )
+              : obj.geojson;
+
+          L.geoJSON(
+            geo,
+            {
+
+              style: {
+
+                color:
+                  category.color,
+
+                weight:
+                  3,
+
+                fillColor:
+                  category.color,
+
+                fillOpacity:
+                  0.18
+
+              }
+
+            }
+          ).addTo(group);
+
+        } catch (error) {
+
+          console.warn(
+            "Помилка GeoJSON:",
+            error
+          );
+
+        }
+
+      }
+
+      /*
+       * NEWS POPUP
+       */
+
+      if (
+        categoryId ===
+        "13"
+      ) {
+
+        const title =
+          obj.title ||
+          obj.desc ||
+          "Новина";
+
+        const source =
+          obj.source ||
+          "Джерело";
+
+        const published =
+          obj.published ||
+          "";
+
+        const url =
+          obj.url ||
+          "";
+
+        marker.bindPopup(
+          `
+          <div style="min-width:220px">
+
+            <div style="
+              font-size:16px;
+              font-weight:bold;
+              margin-bottom:8px;
+            ">
+              📰 ${title}
+            </div>
+
+            ${
+              source
+                ? `
+                  <div style="
+                    color:#777;
+                    font-size:12px;
+                    margin-bottom:6px;
+                  ">
+                    Джерело: ${source}
+                  </div>
+                `
+                : ""
+            }
+
+            ${
+              published
+                ? `
+                  <div style="
+                    color:#888;
+                    font-size:11px;
+                    margin-bottom:8px;
+                  ">
+                    ${published}
+                  </div>
+                `
+                : ""
+            }
+
+            ${
+              obj.desc &&
+              obj.title
+                ? `
+                  <div style="
+                    margin-bottom:10px;
+                  ">
+                    ${obj.desc}
+                  </div>
+                `
+                : ""
+            }
+
+            ${
+              url
+                ? `
+                  <a
+                    href="${url}"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style="
+                      color:#0088cc;
+                      font-weight:bold;
+                    "
+                  >
+                    Відкрити джерело →
+                  </a>
+                `
+                : ""
+            }
+
+          </div>
+          `
+        );
+
+      } else {
+
+        marker.bindPopup(
+          `
+          <b>
+            ${category.name}
+          </b>
+
+          <br>
+          <br>
+
+          ${
+            obj.desc
+              ? String(
+                  obj.desc
+                )
+              : ""
+          }
+
+          ${
+            obj.village
+              ? `
+                <br>
+                <br>
+                від ${obj.village}
+              `
+              : ""
+          }
+          `
+        );
+
+      }
+
+      marker.addTo(group);
+
+      group._category =
+        categoryId;
+
+      group._sheetObject =
+        true;
+
+      group.addTo(
+        sheetLayerGroup
+      );
+
+    }
+  );
+
+}
+
+/* =========================================================
+   UPDATE VISIBILITY
+========================================================= */
+
+function updateVisibility() {
+
+  /*
+   * Google Sheets
+   */
+
+  sheetLayerGroup.eachLayer(
+    layer => {
+
+      const category =
+        layer._category;
+
+      if (
+        visibleCategories[
+          category
+        ]
+      ) {
+
+        if (
+          !map.hasLayer(layer)
+        ) {
+
+          map.addLayer(
+            layer
+          );
+
+        }
+
+      } else {
+
+        if (
+          map.hasLayer(layer)
+        ) {
+
+          map.removeLayer(
+            layer
+          );
+
+        }
+
+      }
+
+    }
+  );
+
+  /*
+   * NEPTUN UAV / threats
+   */
+
+  if (
+    visibleCategories[
+      NEPTUN_CATEGORY_UAV
+    ]
+  ) {
+
+    if (
+      !map.hasLayer(
+        neptunThreatLayerGroup
+      )
+    ) {
+
+      map.addLayer(
+        neptunThreatLayerGroup
+      );
+
+    }
+
+  } else {
+
+    if (
+      map.hasLayer(
+        neptunThreatLayerGroup
+      )
+    ) {
+
+      map.removeLayer(
+        neptunThreatLayerGroup
+      );
+
+    }
+
+  }
+
+  /*
+   * NEPTUN alerts = CATEGORY 1
+   */
+
+  if (
+    visibleCategories[
+      NEPTUN_CATEGORY_ALERT
+    ]
+  ) {
+
+    if (
+      !map.hasLayer(
+        neptunRaionLayerGroup
+      )
+    ) {
+
+      map.addLayer(
+        neptunRaionLayerGroup
+      );
+
+    }
+
+    if (
+      !map.hasLayer(
+        neptunOblastLayerGroup
+      )
+    ) {
+
+      map.addLayer(
+        neptunOblastLayerGroup
+      );
+
+    }
+
+  } else {
+
+    if (
+      map.hasLayer(
+        neptunRaionLayerGroup
+      )
+    ) {
+
+      map.removeLayer(
+        neptunRaionLayerGroup
+      );
+
+    }
+
+    if (
+      map.hasLayer(
+        neptunOblastLayerGroup
+      )
+    ) {
+
+      map.removeLayer(
+        neptunOblastLayerGroup
+      );
+
+    }
+
+  }
+
+  updateCategoryCounts();
+
+}
+
+/* =========================================================
+   CATEGORY COUNTS
+========================================================= */
+
+function updateCategoryCounts() {
+
+  const counts = {};
+
+  Object.keys(categories).forEach(
+    id =>
+      counts[id] = 0
+  );
+
+  /*
+   * Google Sheets
+   */
+
+  sheetObjects.forEach(
+    obj => {
+
+      const type =
+        getSheetCategory(
+          obj
+        );
+
+      if (
+        counts[type] !==
+        undefined
+      ) {
+
+        counts[type]++;
+
+      }
+
+    }
+  );
+
+  /*
+   * NEPTUN UAV
+   */
+
+  neptunThreats.forEach(
+    threat => {
+
+      const category =
+        getNeptunThreatCategory(
+          threat
+        );
+
+      if (
+        counts[category] !==
+        undefined
+      ) {
+
+        counts[category]++;
+
+      }
+
+    }
+  );
+
+  /*
+   * NEPTUN air alerts
+   *
+   * район + область считаються
+   * частиною категорії 1.
+   */
+
+  counts["1"] +=
+    neptunAlerts.length;
+
+  counts["1"] +=
+    neptunAlertOblasts.length;
+
+  Object.keys(categories).forEach(
+    id => {
+
+      const element =
+        document.getElementById(
+          "count-" + id
+        );
+
+      if (element) {
+
+        element.textContent =
+          counts[id];
+
+      }
+
+    }
+  );
+
+}
+
+/* =========================================================
+   LOAD GOOGLE SHEETS
+========================================================= */
+
+async function loadSheetData() {
+
+  try {
+
+    const response =
+      await fetch(
+        API_URL +
+        "?t=" +
+        Date.now(),
+        {
+          cache:
+            "no-store"
+        }
+      );
+
+    if (!response.ok) {
+
+      throw new Error(
+        "HTTP " +
+        response.status
+      );
+
+    }
+
+    const data =
+      await response.json();
+
+    /*
+     * НІКОЛИ не записуємо в кеш
+     * невалідну відповідь.
+     */
+
+    if (
+      !Array.isArray(data)
+    ) {
+
+      throw new Error(
+        "API повернув не масив"
+      );
+
+    }
+
+    sheetObjects =
+      data;
+
+    renderSheetObjects();
+
+    updateVisibility();
+
+    updateStatus();
+
+    /*
+     * Тільки після успішної
+     * нормальної відповіді.
+     */
+
+    await saveOfflineState();
+
+  } catch (error) {
+
+    console.error(
+      "Google Sheets:",
+      error
+    );
+
+    /*
+     * ВАЖЛИВО:
+     *
+     * тут НЕ робимо:
+     *
+     * sheetObjects = [];
+     *
+     * Старі кешовані маркери
+     * залишаються на карті.
+     */
+
+    updateStatus();
+
+  }
+
+}
+
+/* =========================================================
+   NORMALIZE NAME
+========================================================= */
+
+function normalizeName(value) {
+
+  return String(
+    value || ""
+  )
+    .toLowerCase()
+    .replaceAll(
+      "’",
+      "'"
+    )
+    .replaceAll(
+      "`",
+      "'"
+    )
+    .replace(
+      /область$/u,
+      ""
+    )
+    .replace(
+      /район$/u,
+      ""
+    )
+    .replace(
+      /області$/u,
+      ""
+    )
+    .replace(
+      /району$/u,
+      ""
+    )
+    .replace(
+      /[^а-яіїєґa-z0-9]/giu,
+      ""
+    );
+
+}
+
+/* =========================================================
+   GET ALL GEOJSON PROPERTY NAMES
+========================================================= */
+
+function getFeatureNames(
+  feature
+) {
+
+  const props =
+    feature?.properties ||
+    {};
+
+  const values = [];
+
+  Object.keys(props).forEach(
+    key => {
+
+      const value =
+        props[key];
+
+      if (
+        typeof value ===
+        "string"
+      ) {
+
+        values.push(
+          value
+        );
+
+      }
+
+    }
+  );
+
+  return values;
+
+}
+
+/* =========================================================
+   GEOJSON FEATURE MATCH
+========================================================= */
+
+function featureMatchesAlert(
+  feature,
+  alert
+) {
+
+  const alertName =
+    normalizeName(
+      alert?.name
+    );
+
+  if (!alertName) {
+
+    return false;
+
+  }
+
+  return getFeatureNames(
+    feature
+  ).some(
+    name =>
+      normalizeName(
+        name
+      ) ===
+      alertName
+  );
+
+}
+
+/* =========================================================
+   FIND RAION ALERT
+========================================================= */
+
+function findRaionAlert(
+  feature
+) {
+
+  return (
+    neptunAlerts.find(
+      alert =>
+        featureMatchesAlert(
+          feature,
+          alert
+        )
+    ) ||
+    null
+  );
+
+}
+
+/* =========================================================
+   FIND OBLAST ALERT
+========================================================= */
+
+function findOblastAlert(
+  feature
+) {
+
+  return (
+    neptunAlertOblasts.find(
+      alert =>
+        featureMatchesAlert(
+          feature,
+          alert
+        )
+    ) ||
+    null
+  );
+
+}
+
+/* =========================================================
+   ALERT STYLE
+========================================================= */
+
+function getAlertStyle(
+  alert,
+  isOblast
+) {
+
+  const level =
+    String(
+      alert?.level || ""
+    ).toLowerCase();
+
+  /*
+   * RED = active official red alert
+   */
+
+  if (
+    level === "red"
+  ) {
+
+    return {
+
+      color:
+        "#ff0000",
+
+      weight:
+        isOblast
+          ? 4
+          : 3,
+
+      opacity:
+        1,
+
+      fillColor:
+        "#ff0000",
+
+      fillOpacity:
+        isOblast
+          ? 0.16
+          : 0.28
+
+    };
+
+  }
+
+  /*
+   * YELLOW = yellow alert
+   */
+
+  if (
+    level === "yellow"
+  ) {
+
+    return {
+
+      color:
+        "#ffcc00",
+
+      weight:
+        isOblast
+          ? 3
+          : 2,
+
+      opacity:
+        1,
+
+      fillColor:
+        "#ffcc00",
+
+      fillOpacity:
+        isOblast
+          ? 0.10
+          : 0.18
+
+    };
+
+  }
+
+  /*
+   * fallback
+   */
+
+  return {
+
+    color:
+      "#ff0000",
+
+    weight:
+      3,
+
+    opacity:
+      1,
+
+    fillColor:
+      "#ff0000",
+
+    fillOpacity:
+      0.18
+
+  };
+
+}
+
+/* =========================================================
+   LOAD NEPTUN GEOJSON
+========================================================= */
+
+async function loadNeptunGeoJSON() {
+
+  try {
+
+    const [
+      raionResponse,
+      oblastResponse
+    ] = await Promise.all([
+
+      fetch(
+        RAIONS_GEOJSON_URL +
+        "?t=" +
+        Date.now(),
+        {
+          cache:
+            "no-store"
+        }
+      ),
+
+      fetch(
+        OBLASTS_GEOJSON_URL +
+        "?t=" +
+        Date.now(),
+        {
+          cache:
+            "no-store"
+        }
+      )
+
+    ]);
+
+    if (
+      !raionResponse.ok
+    ) {
+
+      throw new Error(
+        "Raions GeoJSON HTTP " +
+        raionResponse.status
+      );
+
+    }
+
+    if (
+      !oblastResponse.ok
+    ) {
+
+      throw new Error(
+        "Oblasts GeoJSON HTTP " +
+        oblastResponse.status
+      );
+
+    }
+
+    const newRaionsGeoJSON =
+      await raionResponse.json();
+
+    const newOblastsGeoJSON =
+      await oblastResponse.json();
+
+    /*
+     * Перевіряємо структуру,
+     * щоб не перезаписати кеш
+     * битим JSON.
+     */
+
+    if (
+      !newRaionsGeoJSON ||
+      typeof newRaionsGeoJSON !==
+        "object" ||
+      !Array.isArray(
+        newRaionsGeoJSON.features
+      )
+    ) {
+
+      throw new Error(
+        "Некоректний GeoJSON районів"
+      );
+
+    }
+
+    if (
+      !newOblastsGeoJSON ||
+      typeof newOblastsGeoJSON !==
+        "object" ||
+      !Array.isArray(
+        newOblastsGeoJSON.features
+      )
+    ) {
+
+      throw new Error(
+        "Некоректний GeoJSON областей"
+      );
+
+    }
+
+    /*
+     * Лише тепер замінюємо поточні
+     * GeoJSON.
+     */
+
+    raionsGeoJSON =
+      newRaionsGeoJSON;
+
+    oblastsGeoJSON =
+      newOblastsGeoJSON;
+
+    console.log(
+      "GeoJSON районів завантажено"
+    );
+
+    console.log(
+      "GeoJSON областей завантажено"
+    );
+
+    renderAlertZones();
+
+    /*
+     * GeoJSON успішно отримані —
+     * зберігаємо їх у кеш.
+     */
+
+    await saveOfflineState();
+
+    updateStatus();
+
+  } catch (error) {
+
+    console.error(
+      "GeoJSON NEPTUN:",
+      error
+    );
+
+    /*
+     * Старий GeoJSON залишається.
+     */
+
+    renderAlertZones();
+
+    updateStatus();
+
+  }
+
+}
+
+/* =========================================================
+   RENDER ALERT ZONES
+========================================================= */
+
+function renderAlertZones() {
+
+  neptunRaionLayerGroup.clearLayers();
+
+  neptunOblastLayerGroup.clearLayers();
+
+  /*
+   * =================================
+   * OBLASTS FIRST
+   * =================================
+   *
+   * Області малюємо першими,
+   * щоб райони були зверху.
+   */
+
+  if (
+    oblastsGeoJSON &&
+    Array.isArray(
+      oblastsGeoJSON.features
+    )
+  ) {
+
+    oblastsGeoJSON.features.forEach(
+      feature => {
+
+        const alert =
+          findOblastAlert(
+            feature
+          );
+
+        if (!alert) {
+
+          return;
+
+        }
+
+        const layer =
+          L.geoJSON(
+            feature,
+            {
+
+              style:
+                getAlertStyle(
+                  alert,
+                  true
+                ),
+
+              interactive:
+                false
+
+            }
+          );
+
+        /*
+         * КЛЮЧОВЕ:
+         *
+         * NEPTUN область =
+         * категорія 1
+         */
+
+        layer._category =
+          NEPTUN_CATEGORY_ALERT;
+
+        layer._neptunAlert =
+          true;
+
+        layer._neptunOblast =
+          true;
+
+        layer.bindTooltip(
+          `
+          🚨
+          ${alert.name}
+
+          <br>
+
+          Рівень:
+          ${alert.level || "невідомий"}
+          `,
+          {
+            sticky: true
+          }
+        );
+
+        layer.addTo(
+          neptunOblastLayerGroup
+        );
+
+      }
+    );
+
+  }
+
+  /*
+   * =================================
+   * RAIONS
+   * =================================
+   */
+
+  if (
+    raionsGeoJSON &&
+    Array.isArray(
+      raionsGeoJSON.features
+    )
+  ) {
+
+    raionsGeoJSON.features.forEach(
+      feature => {
+
+        const alert =
+          findRaionAlert(
+            feature
+          );
+
+        if (!alert) {
+
+          return;
+
+        }
+
+        const layer =
+          L.geoJSON(
+            feature,
+            {
+
+              style:
+                getAlertStyle(
+                  alert,
+                  false
+                ),
+
+              interactive:
+                false
+
+            }
+          );
+
+        /*
+         * КЛЮЧОВЕ:
+         *
+         * NEPTUN район =
+         * категорія 1
+         */
+
+        layer._category =
+          NEPTUN_CATEGORY_ALERT;
+
+        layer._neptunAlert =
+          true;
+
+        layer._neptunRaion =
+          true;
+
+        layer.bindTooltip(
+          `
+          🚨
+          ${alert.name}
+
+          <br>
+
+          Рівень:
+          ${alert.level || "невідомий"}
+          `,
+          {
+            sticky: true
+          }
+        );
+
+        layer.addTo(
+          neptunRaionLayerGroup
+        );
+
+      }
+    );
+
+  }
+
+  updateVisibility();
+
+}
+
+/* =========================================================
+   GET THREAT CATEGORY
+========================================================= */
+
+function getNeptunThreatCategory(
+  threat
+) {
+
+  const type =
+    normalizeType(
+      threat?.type
+    );
+
+  /*
+   * ШАХЕД / БПЛА
+   *
+   * ВСЕ UAV -> КАТЕГОРІЯ 2
+   */
+
+  if (
+    type === "uav"
+  ) {
+
+    return NEPTUN_CATEGORY_UAV;
+
+  }
+
+  /*
+   * Інші повітряні загрози
+   * також відносимо до авіації.
+   */
+
+  if (
+    type === "missile" ||
+    type === "rocket" ||
+    type === "aircraft" ||
+    type === "plane"
+  ) {
+
+    return NEPTUN_CATEGORY_UAV;
+
+  }
+
+  return NEPTUN_CATEGORY_UAV;
+
+}
+
+/* =========================================================
+   THREAT POSITION
+========================================================= */
+
+function getThreatPosition(
+  threat
+) {
+
+  /*
+   * НЕПТУН SDK prediction
+   */
+
+  try {
+
+    if (
+      window.NEPTUN &&
+      typeof NEPTUN.predict ===
+        "function"
+    ) {
+
+      const predicted =
+        NEPTUN.predict(
+          threat,
+          Date.now()
+        );
+
+      if (
+        predicted &&
+        Number.isFinite(
+          Number(
+            predicted.lat
+          )
+        ) &&
+        Number.isFinite(
+          Number(
+            predicted.lon
+          )
+        )
+      ) {
+
+        return [
+          Number(
+            predicted.lat
+          ),
+          Number(
+            predicted.lon
+          )
+        ];
+
+      }
+
+    }
+
+  } catch (error) {
+
+    console.warn(
+      "NEPTUN predict error:",
+      error
+    );
+
+  }
+
+  /*
+   * Fallback
+   */
+
+  if (
+    Number.isFinite(
+      Number(
+        threat?.lat
+      )
+    ) &&
+    Number.isFinite(
+      Number(
+        threat?.lon
+      )
+    )
+  ) {
+
+    return [
+      Number(
+        threat.lat
+      ),
+      Number(
+        threat.lon
+      )
+    ];
+
+  }
+
+  return null;
+
+}
+
+/* =========================================================
+   THREAT TITLE
+========================================================= */
+
+function getThreatTitle(
+  threat
+) {
+
+  const type =
+    normalizeType(
+      threat?.type
+    );
+
+  if (
+    type === "uav"
+  ) {
+
+    return "✈️ Шахед / БпЛА";
+
+  }
+
+  if (
+    threat?.title
+  ) {
+
+    return String(
+      threat.title
+    );
+
+  }
+
+  if (
+    threat?.name
+  ) {
+
+    return String(
+      threat.name
+    );
+
+  }
+
+  return "✈️ Повітряна загроза";
+
+}
+
+/* =========================================================
+   RENDER NEPTUN THREATS
+========================================================= */
+
+function renderNeptunThreats() {
+
+  neptunThreatLayerGroup.clearLayers();
+
+  neptunThreats.forEach(
+    threat => {
+
+      /*
+       * areaOnly = true
+       *
+       * Не показуємо centroid
+       * як реальне місце загрози.
+       */
+
+      if (
+        threat?.areaOnly ===
+        true
+      ) {
+
+        return;
+
+      }
+
+      const position =
+        getThreatPosition(
+          threat
+        );
+
+      if (!position) {
+
+        return;
+
+      }
+
+      const category =
+        getNeptunThreatCategory(
+          threat
+        );
+
+      /*
+       * Шахед = категорія 2
+       */
+
+      if (
+        category !==
+        NEPTUN_CATEGORY_UAV
+      ) {
+
+        return;
+
+      }
+
+      const marker =
+        L.marker(
+          position,
+          {
+            icon:
+              createNeptunThreatIcon(
+                threat.type
+              )
+          }
+        );
+
+      marker.bindPopup(
+        `
+        <b>
+          ${getThreatTitle(
+            threat
+          )}
+        </b>
+
+        <br>
+        <br>
+
+        Будьте обережні та
+        залишайтеся в безпеці!
+
+        ${
+          threat.advisory
+            ? `
+              <br>
+              <br>
+              ⚠️ Спостереження
+              (advisory)
+            `
+            : ""
+        }
+
+        <br>
+        <br>
+
+        від NEPTUN
+        `
+      );
+
+      marker._category =
+        NEPTUN_CATEGORY_UAV;
+
+      marker._neptunThreat =
+        true;
+
+      marker.addTo(
+        neptunThreatLayerGroup
+      );
+
+    }
+  );
+
+  updateVisibility();
+
+}
+
+/* =========================================================
+   LOAD NEPTUN ALERTS REST
+========================================================= */
+
+async function loadNeptunAlerts() {
+
+  try {
+
+    const response =
+      await fetch(
+        NEPTUN_ALERTS_URL +
+        "?t=" +
+        Date.now(),
+        {
+          cache:
+            "no-store"
+        }
+      );
+
+    if (!response.ok) {
+
+      throw new Error(
+        "HTTP " +
+        response.status
+      );
+
+    }
+
+    const data =
+      await response.json();
+
+    /*
+     * API має повернути обидва масиви.
+     *
+     * Якщо структура зовсім інша,
+     * не перезаписуємо поточні дані.
+     */
+
+    if (
+      !Array.isArray(
+        data?.raions
+      ) ||
+      !Array.isArray(
+        data?.oblasts
+      )
+    ) {
+
+      throw new Error(
+        "NEPTUN alerts повернув некоректну структуру"
+      );
+
+    }
+
+    /*
+     * Райони
+     */
+
+    neptunAlerts =
+      data.raions;
+
+    /*
+     * Області
+     */
+
+    neptunAlertOblasts =
+      data.oblasts;
+
+    console.log(
+      "NEPTUN райони:",
+      neptunAlerts
+    );
+
+    console.log(
+      "NEPTUN області:",
+      neptunAlertOblasts
+    );
+
+    renderAlertZones();
+
+    updateAlertBadge();
+
+    updateCategoryCounts();
+
+    updateStatus();
+
+    /*
+     * Зберігаємо тільки після
+     * успішної валідної відповіді.
+     */
+
+    await saveOfflineState();
+
+  } catch (error) {
+
+    console.error(
+      "NEPTUN alerts:",
+      error
+    );
+
+    /*
+     * Не очищаємо старі дані.
+     */
+
+    updateStatus();
+
+  }
+
+}
+
+/* =========================================================
+   LOAD NEPTUN THREATS REST
+========================================================= */
+
+async function loadNeptunThreats() {
+
+  try {
+
+    const response =
+      await fetch(
+        NEPTUN_THREATS_URL +
+        "?t=" +
+        Date.now(),
+        {
+          cache:
+            "no-store"
+        }
+      );
+
+    if (!response.ok) {
+
+      throw new Error(
+        "HTTP " +
+        response.status
+      );
+
+    }
+
+    const data =
+      await response.json();
+
+    /*
+     * API може повернути:
+     *
+     * масив
+     *
+     * або
+     *
+     * { threats: [] }
+     */
+
+    let newThreats = null;
+
+    if (
+      Array.isArray(data)
+    ) {
+
+      newThreats =
+        data;
+
+    } else if (
+      Array.isArray(
+        data?.threats
+      )
+    ) {
+
+      newThreats =
+        data.threats;
+
+    } else {
+
+      throw new Error(
+        "NEPTUN threats повернув некоректну структуру"
+      );
+
+    }
+
+    /*
+     * Тільки валідний масив
+     * замінює поточні дані.
+     */
+
+    neptunThreats =
+      newThreats;
+
+    renderNeptunThreats();
+
+    updateCategoryCounts();
+
+    updateStatus();
+
+    /*
+     * Зберігаємо актуальні загрози.
+     */
+
+    await saveOfflineState();
+
+  } catch (error) {
+
+    console.error(
+      "NEPTUN threats:",
+      error
+    );
+
+    /*
+     * Старі загрози залишаються.
+     */
+
+    updateStatus();
+
+  }
+
+}
+
+/* =========================================================
+   ALERT BADGE
+========================================================= */
+
+function updateAlertBadge() {
+
+  const badge =
+    document.getElementById(
+      "alertBadge"
+    );
+
+  /*
+   * alertBadge зараз закоментований.
+   *
+   * Якщо його немає — просто виходимо.
+   */
+
+  if (!badge) {
+
+    return;
+
+  }
+
+  const hasAlerts =
+    neptunAlerts.length > 0 ||
+    neptunAlertOblasts.length > 0;
+
+  if (hasAlerts) {
+
+    badge.style.display =
+      "block";
+
+  } else {
+
+    badge.style.display =
+      "none";
+
+  }
+
+}
+
+/* =========================================================
+   STATUS
+========================================================= */
+
+function updateStatus() {
+
+  const status =
+    document.getElementById(
+      "status"
+    );
+
+  if (!status) {
+
+    return;
+
+  }
+
+  const alerts =
+    neptunAlerts.length +
+    neptunAlertOblasts.length;
+
+  const uavs =
+    neptunThreats.filter(
+      threat =>
+        getNeptunThreatCategory(
+          threat
+        ) ===
+        NEPTUN_CATEGORY_UAV
+    ).length;
+
+  const news =
+    sheetObjects.filter(
+      obj =>
+        getSheetCategory(
+          obj
+        ) === "13"
+    ).length;
+
+  /*
+   * Якщо браузер офлайн,
+   * прямо показуємо це в статусі.
+   */
+
+  if (
+    !navigator.onLine
+  ) {
+
+    status.innerHTML =
+      `
+      🔴 ОФЛАЙН
+
+      <br>
+
+      Використовуються збережені дані
+
+      ${
+        offlineCacheSavedAt
+          ? `
+            <br>
+            Кеш:
+            ${formatCacheAge(
+              offlineCacheSavedAt
+            )}
+          `
+          : ""
+      }
+
+      <br><br>
+
+      Google Sheets:
+      ${sheetObjects.length}
+
+      <br>
+
+      📰 Новин:
+      ${news}
+
+      <br>
+
+      NEPTUN тривог:
+      ${alerts}
+
+      <br>
+
+      NEPTUN БпЛА:
+      ${uavs}
+      `;
+
+    return;
+
+  }
+
+  /*
+   * Якщо дані були відновлені з кешу,
+   * але мережа зараз доступна,
+   * показуємо час кешу, поки свіжі
+   * дані ще завантажуються.
+   */
+
+  const cacheLine =
+    offlineCacheLoaded &&
+    offlineCacheSavedAt
+      ? `
+        <br>
+        Кеш:
+        ${formatCacheAge(
+          offlineCacheSavedAt
+        )}
+      `
+      : "";
+
+  status.innerHTML =
+    `
+    Google Sheets:
+    ${sheetObjects.length}
+
+    <br>
+
+    📰 Новин:
+    ${news}
+
+    <br>
+
+    NEPTUN тривог:
+    ${alerts}
+
+    <br>
+
+    NEPTUN БпЛА:
+    ${uavs}
+
+    ${cacheLine}
+    `;
+
+}
+
+/* =========================================================
+   NEPTUN REALTIME
+========================================================= */
+
+let neptunRealtimeClient =
+  null;
+
+function startNeptunRealtime() {
+
+  try {
+
+    if (
+      !window.NEPTUN ||
+      typeof NEPTUN.RealtimeClient !==
+        "function"
+    ) {
+
+      console.warn(
+        "NEPTUN RealtimeClient недоступний"
+      );
+
+      return;
+
+    }
+
+    neptunRealtimeClient =
+      new NEPTUN.RealtimeClient(
+        NEPTUN_URL
+      );
+
+    neptunRealtimeClient.subscribe(
+      snapshot => {
+
+        console.log(
+          "NEPTUN realtime snapshot:",
+          snapshot
+        );
+
+        /*
+         * Прапорець:
+         *
+         * чи отримали ми хоча б
+         * одне валідне поле.
+         */
+
+        let changed =
+          false;
+
+        /*
+         * Загрози
+         */
+
+        if (
+          Array.isArray(
+            snapshot?.threats
+          )
+        ) {
+
+          neptunThreats =
+            snapshot.threats;
+
+          changed = true;
+
+          renderNeptunThreats();
+
+        }
+
+        /*
+         * Районні тривоги
+         *
+         * КАТЕГОРІЯ 1
+         */
+
+        if (
+          Array.isArray(
+            snapshot?.alerts
+          )
+        ) {
+
+          neptunAlerts =
+            snapshot.alerts;
+
+          changed = true;
+
+        }
+
+        /*
+         * Обласні тривоги
+         *
+         * КАТЕГОРІЯ 1
+         */
+
+        if (
+          Array.isArray(
+            snapshot?.alertOblasts
+          )
+        ) {
+
+          neptunAlertOblasts =
+            snapshot.alertOblasts;
+
+          changed = true;
+
+        }
+
+        /*
+         * Якщо snapshot містив хоча б
+         * одне валідне поле — перемальовуємо
+         * та зберігаємо.
+         */
+
+        if (changed) {
+
+          renderAlertZones();
+
+          updateAlertBadge();
+
+          updateCategoryCounts();
+
+          updateStatus();
+
+          /*
+           * ВАЖЛИВО:
+           *
+           * realtime snapshot може не містити
+           * GeoJSON, тому saveOfflineState()
+           * бере вже наявний GeoJSON і не
+           * затирає його null-ом.
+           */
+
+          saveOfflineState();
+
+        }
+
+      }
+    );
+
+    neptunRealtimeClient.start();
+
+    console.log(
+      "NEPTUN realtime запущено"
+    );
+
+  } catch (error) {
+
+    console.error(
+      "NEPTUN realtime:",
+      error
+    );
+
+  }
+
+}
+
+/* =========================================================
+   MAP ZOOM
+========================================================= */
+
+map.on(
+  "zoomend",
+  function() {
+
+    renderNeptunThreats();
+
+  }
+);
+
+/* =========================================================
+   RESIZE
+========================================================= */
+
+window.addEventListener(
+  "resize",
+  function() {
+
+    /*
+     * Якщо перейшли з телефона
+     * на великий екран —
+     * прибираємо mobile-open клас.
+     */
+
+    if (
+      window.innerWidth > 600
+    ) {
+
+      panel.classList.remove(
+        "panel-open"
+      );
+
+      panelToggle.textContent =
+        "☰";
+
+    }
+
+  }
+);
+
+/* =========================================================
+   INITIALIZATION
+========================================================= */
+
+async function init() {
+
+  createCategoryPanel();
+
+  /*
+   * =======================================================
+   * ПЕРШИЙ КРОК:
+   * ВІДНОВЛЕННЯ INDEXEDDB
+   * =======================================================
+   *
+   * Це спеціально виконується ПЕРЕД мережевими запитами.
+   *
+   * Якщо користувач відкрив карту офлайн,
+   * тут одразу з'являться старі маркери,
+   * тривоги та GeoJSON.
+   */
+
+  try {
+
+    await restoreOfflineState();
+
+  } catch (error) {
+
+    console.warn(
+      "OFFLINE restore:",
+      error
+    );
+
+  }
+
+  /*
+   * Після відновлення кешу карта вже може
+   * бути показана користувачу.
+   */
+
+  updateVisibility();
+
+  updateStatus();
+
+  /*
+   * =======================================================
+   * ДАЛІ — МЕРЕЖА
+   * =======================================================
+   *
+   * Якщо інтернету немає, ці функції
+   * просто залишать кешовані дані.
+   */
+
+  if (
+    navigator.onLine
+  ) {
+
+    /*
+     * Завантажуємо межі України
+     */
+
+    await loadNeptunGeoJSON();
+
+    /*
+     * Google Sheets
+     */
+
+    await loadSheetData();
+
+    /*
+     * NEPTUN REST
+     */
+
+    await loadNeptunAlerts();
+
+    await loadNeptunThreats();
+
+  } else {
+
+    console.log(
+      "Старт офлайн — використовуються IndexedDB дані"
+    );
+
+    updateStatus();
+
+  }
+
+  /*
+   * =======================================================
+   * NEPTUN REALTIME
+   * =======================================================
+   */
+
+  if (
+    navigator.onLine
+  ) {
+
+    startNeptunRealtime();
+
+  }
+
+  /*
+   * =======================================================
+   * ПЕРІОДИЧНЕ РЕЗЕРВНЕ ОНОВЛЕННЯ
+   * =======================================================
+   */
+
+  setInterval(
+    function() {
+
+      if (
+        navigator.onLine
+      ) {
+
+        loadSheetData();
+
+      }
+
+    },
+    10000
+  );
+
+  setInterval(
+    function() {
+
+      if (
+        navigator.onLine
+      ) {
+
+        loadNeptunAlerts();
+
+      }
+
+    },
+    5000
+  );
+
+  setInterval(
+    function() {
+
+      if (
+        navigator.onLine
+      ) {
+
+        loadNeptunThreats();
+
+      }
+
+    },
+    5000
+  );
+
+  /*
+   * Оновлюємо статус кешу періодично,
+   * щоб час "N хв. тому" був актуальним.
+   */
+
+  setInterval(
+    function() {
+
+      updateStatus();
+
+    },
+    30000
+  );
+
+  updateVisibility();
+
+  updateStatus();
+
+}
+
+/* =========================================================
+   START
+========================================================= */
 
 init();
+
 </script>
+
 </body>
 </html>
